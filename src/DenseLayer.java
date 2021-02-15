@@ -15,8 +15,8 @@ public class DenseLayer {
         this.inputSize = inputSize;
         this.outputSize = outputSize;
 
-        this.weights = new Matrix(inputSize, outputSize);
-        this.biases = new Matrix(1, outputSize);
+        this.randomizeWeights();
+        this.randomizeBiases();
     }
 
     public void randomizeBiases() {
