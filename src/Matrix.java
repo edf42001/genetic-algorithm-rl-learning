@@ -1,7 +1,8 @@
+import java.io.Serializable;
 import java.util.Random;
 
-public class Matrix {
-    public static Random random = new Random(0);
+public class Matrix implements Serializable {
+    public static Random random = new Random();
 
     private float[][] data;
 
@@ -77,7 +78,7 @@ public class Matrix {
 
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
-                ret[r][c] = (float) random.nextGaussian();
+                ret[r][c] = (float) (std * (random.nextGaussian() - mean));
             }
         }
 

@@ -1,15 +1,29 @@
 import sun.nio.ch.Net;
 
+import java.io.*;
+
 public class Main {
 
     public static void main(String[] args) {
-        DenseLayer layer = new DenseLayer(3, 2);
-        layer.randomizeWeights();
-        layer.randomizeBiases();
+        DenseLayer layer0 = new DenseLayer(2, 3, "none");
+        DenseLayer layer1 = new DenseLayer(3, 2, "relu");
+        Network network = new Network();
+        network.addLayer(layer0);
+        network.addLayer(layer1);
 
-        DenseLayer layer2 = new DenseLayer(2, 1);
-        layer2.randomizeWeights();
-        layer2.randomizeBiases();
+        Network.saveNetwork("saved_data/network.ser", network);
+
+        Network network2 = Network.loadNetwork("saved_data/network.ser");
+
+        System.out.println(network2.getLayer(0).getWeights());
+
+    }
+
+    public static void testNetwork()
+    {
+        DenseLayer layer = new DenseLayer(3, 2, "none");
+
+        DenseLayer layer2 = new DenseLayer(2, 1, "none");
 
         Network network = new Network();
         network.addLayer(layer);
