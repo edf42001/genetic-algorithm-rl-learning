@@ -72,13 +72,21 @@ public class Matrix implements Serializable {
         return new Matrix(ret);
     }
 
-    public static Matrix randomMatrix(int rows, int cols, float mean, float std)
+    /**
+     * Return a matrix with uniformly distributed
+     * random values in each entry
+     * @param rows Rows
+     * @param cols Cols
+     * @param range Values will be in [-range, range]
+     * @return
+     */
+    public static Matrix randomMatrix(int rows, int cols, float range)
     {
         float[][] ret = new float[rows][cols];
 
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
-                ret[r][c] = (float) (std * (random.nextGaussian() - mean));
+                ret[r][c] = 2 * range * (random.nextFloat() - 0.5f);
             }
         }
 
@@ -87,7 +95,7 @@ public class Matrix implements Serializable {
 
     public static Matrix randomMatrix(int rows, int cols)
     {
-        return Matrix.randomMatrix(rows, cols, 0, 1);
+        return Matrix.randomMatrix(rows, cols, 1);
     }
 
     public String toString()

@@ -23,9 +23,9 @@ public class MyCombatAgent extends Agent {
     private int enemyPlayerNum = 1;
 
     // Save data to files
-    FileWriter myWriter;
+    private FileWriter myWriter;
 
-    Network network;
+    private Population population;
 
     public MyCombatAgent(int player, String[] args) {
         super(player);
@@ -36,11 +36,9 @@ public class MyCombatAgent extends Agent {
             this.enemyPlayerNum = new Integer(args[0]);
         }
 
+        this.population = new Population(10);
+
         System.out.println("In constructor of MyCombatAgent");
-        network = new Network();
-        network.addLayer(new DenseLayer(12, 16, "relu"));
-        network.addLayer(new DenseLayer(16, 16, "relu"));
-        network.addLayer(new DenseLayer(16, 16, "sigmoid"));
 
         // Create files to save data
         File dataFile = new File("saved_data/netInputData.csv");
@@ -69,39 +67,7 @@ public class MyCombatAgent extends Agent {
     public Map<Integer, Action> initialStep(State.StateView state, History.HistoryView history) {
         System.out.println("In agent initialStep");
 
-        // Actions to do
-        Map<Integer, Action> actions = new HashMap<Integer, Action>();
-//
-//        // Get ids of my units
-//        List<Integer> myUnitIDs = state.getUnitIds(this.playernum);
-//
-//        // And list of enemy units
-//        List<Integer> enemyUnitIDs = state.getUnitIds(this.enemyPlayerNum);
-//
-//        // Nothing to do, no enemies left
-//        if(enemyUnitIDs.size() == 0)
-//        {
-//            return actions;
-//        }
-//
-//        // Initialize all agents to attack the 0th enemy unit
-//        for(Integer myUnitID : myUnitIDs)
-//        {
-//            actions.put(myUnitID, Action.createCompoundAttack(myUnitID, enemyUnitIDs.get(0)));
-//
-//            // Get names to print message
-//            UnitView unit = state.getUnit(myUnitID);
-//            UnitTemplateView unitTemplate = unit.getTemplateView();
-//            String unitName = unitTemplate.getName();
-//
-//            UnitView enemyUnit = state.getUnit(enemyUnitIDs.get(0));
-//            UnitTemplateView enemyUnitTemplate = enemyUnit.getTemplateView();
-//            String enemyUnitName = enemyUnitTemplate.getName();
-//
-//            System.out.println("Sending " + unitName + " to attack " + enemyUnitName);
-//        }
-//
-        return actions;
+        return null;
     }
 
     @Override
@@ -122,10 +88,9 @@ public class MyCombatAgent extends Agent {
         }
 
         Matrix inputData = observeEnvironment(state);
-        System.out.print("Input data: " + inputData);
-
-        Matrix results = network.feedForward(inputData);
-        System.out.println("Network result: " + results);
+        Matrix results = population.getActions(inputData);
+        //        System.out.print("Input data: " + inputData);
+//        System.out.println("Network result: " + results);
 
         // Save input data to file
         try {
@@ -138,29 +103,6 @@ public class MyCombatAgent extends Agent {
 
         // Add actions to do based on network results
         convertOutputToActions(results.getData()[0], actions);
-//        // Get history of current action execution
-//        for(ActionResult feedback : history.getCommandFeedback(this.playernum, turnNum - 1).values())
-//        {
-//            // If the action was interrupted or the unit
-//            // it was attacking dies, then need a new action
-//            if(feedback.getFeedback() != ActionFeedback.INCOMPLETE)
-//            {
-//                // Get our unit id, have it switch to first enemy in list
-//                int unitID = feedback.getAction().getUnitId();
-//
-//                // Get names to print message
-//                UnitView unit = state.getUnit(unitID);
-//                UnitTemplateView unitTemplate = unit.getTemplateView();
-//                String unitName = unitTemplate.getName();
-//
-//                UnitView enemyUnit = state.getUnit(enemyUnitIDs.get(0));
-//                UnitTemplateView enemyUnitTemplate = enemyUnit.getTemplateView();
-//                String enemyUnitName = enemyUnitTemplate.getName();
-//
-//                System.out.println(unitName + unitID + " action finished with " + feedback.getFeedback());
-//                System.out.println(unitName + unitID + " to attack " + enemyUnitName + enemyUnitIDs.get(0));
-//            }
-//        }
 
         return actions;
     }
@@ -168,13 +110,20 @@ public class MyCombatAgent extends Agent {
     @Override
     public void terminalStep(State.StateView stateView, History.HistoryView historyView) {
         System.out.println("In agent terminal step");
+//        System.out.println("Testing next member of population");
 
-        // Close file
-        try {
-            myWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        // Switch population to test next member, record if new epoch
+        boolean newEpoch = population.moveToNextMember();
+
+        if (newEpoch) {
+            System.out.println("Epoch: " + population.getEpoch());
         }
+        // Close file
+//        try {
+//            myWriter.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     @Override
@@ -221,19 +170,20 @@ public class MyCombatAgent extends Agent {
         for (int i = 0; i < this.myUnitIDs.size(); i++)
         {
             Integer unitID = this.myUnitIDs.get(i);
-            // First four determine movement direction.
-            // Take max, or no movement if no >0.5
+            // First 5 determine movement direction, or attack
+            // Take max, or no action if no >0.5
             int maxIndex = -1;
             float maxValue = 0;
-            for (int j = nActionsPerUnit * i; j < nActionsPerUnit * i + 4; j++) {
+            for (int j = nActionsPerUnit * i; j < nActionsPerUnit * i + 5; j++) {
                 if (data[j] > 0.5 && data[j] > maxValue) {
                     maxIndex = j - nActionsPerUnit * i;
                     maxValue = data[j];
                 }
             }
 
-            if (maxIndex != -1) {
-                // Select a direction from the index
+            // If the chosen index is one of the first 4,
+            // Select a direction from the index
+            if (maxIndex >=0 && maxIndex < 4) {
                 Direction dir = Direction.EAST; // Default value so it compiles
                 switch (maxIndex) {
                     case 0:
@@ -255,9 +205,11 @@ public class MyCombatAgent extends Agent {
                 actions.put(unitID, Action.createPrimitiveMove(unitID, dir));
             }
 
-            // Unit wants to attack if the output is on
-            if (data[nActionsPerUnit * i + 5] > 0.5) {
-                // Find max value, this indicates which enemy to attack
+            // This mean unit wants to attack
+            if (maxIndex == 4)
+            {
+                // Find max value of indices 5-7,
+                // this indicates which enemy to attack
                 maxIndex = -1;
                 maxValue = -1;
                 for (int j = nActionsPerUnit * i + 5; j < nActionsPerUnit * i + 5 + enemyUnitIDs.size(); j++) {
@@ -267,8 +219,9 @@ public class MyCombatAgent extends Agent {
                     }
                 }
 
+                // Look up the enemy id the network wanted to attack
                 Integer enemyID = this.enemyUnitIDs.get(maxIndex);
-                actions.put(unitID, Action.createCompoundAttack(unitID, enemyID));
+                actions.put(unitID, Action.createPrimitiveAttack(unitID, enemyID));
             }
         }
     }

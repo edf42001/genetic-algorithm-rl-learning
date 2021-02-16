@@ -41,11 +41,14 @@ public class DenseLayer implements Serializable {
     }
 
     public void randomizeBiases() {
-        this.biases = Matrix.randomMatrix(1, this.outputSize, 0, 0.5f);
+        // Just set these to uniformly distributed in [-0.5, 0.5]
+        this.biases = Matrix.randomMatrix(1, this.outputSize, 0.5f);
     }
 
     public void randomizeWeights() {
-        this.weights = Matrix.randomMatrix(this.inputSize, this.outputSize, 0, 0.5f);
+        // This range value is called the glorot_uniform initialization
+        float range = (float) Math.sqrt(6.0 / (this.inputSize + this.outputSize));
+        this.weights = Matrix.randomMatrix(this.inputSize, this.outputSize, range);
     }
 
     public Matrix feedForward(Matrix inputData)
