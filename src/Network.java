@@ -1,3 +1,5 @@
+import sun.nio.ch.Net;
+
 import java.io.*;
 import java.util.ArrayList;
 
@@ -64,6 +66,16 @@ public class Network implements Serializable {
         }
     }
 
+    public Network clone()
+    {
+        Network ret = new Network();
+        for (DenseLayer layer : this.layers)
+        {
+            ret.addLayer(layer.clone());
+        }
+        return ret;
+    }
+
     public ArrayList<DenseLayer> getLayers() {
         return layers;
     }
@@ -72,4 +84,6 @@ public class Network implements Serializable {
     {
         return layers.get(index);
     }
+
+
 }

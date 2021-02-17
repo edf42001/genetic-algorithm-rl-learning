@@ -24,20 +24,18 @@ public class DenseLayer implements Serializable {
 
         // Set activation types as ints for
         // faster comparison
-        switch (activation) {
-            case "relu":
-                this.activation = 0;
-                break;
-            case "sigmoid":
-                this.activation = 1;
-                break;
-            case "none":
-                this.activation = 2;
-                break;
-            default:
-                System.err.println("Error: Unknown activation " + activation);
-                break;
-        }
+        this.activation = stringToActivation(activation);
+
+    }
+
+    public DenseLayer(Matrix weights, Matrix biases, int activation) {
+        this.weights = weights;
+        this.biases = biases;
+
+        this.inputSize = weights.getData().length;
+        this.outputSize = weights.getData()[0].length;
+
+        this.activation = activation;
     }
 
     public void randomizeBiases() {
@@ -103,6 +101,26 @@ public class DenseLayer implements Serializable {
         return a;
     }
 
+    public int stringToActivation(String activation)
+    {
+        switch (activation) {
+            case "relu":
+                return 0;
+            case "sigmoid":
+                return 1;
+            case "none":
+                return 2;
+            default:
+                System.err.println("Error: Unknown activation " + activation);
+                return -1;
+        }
+    }
+
+    public DenseLayer clone()
+    {
+        return new DenseLayer(weights.clone(), biases.clone(), activation);
+    }
+
     public Matrix getWeights() {
         return weights;
     }
@@ -111,5 +129,8 @@ public class DenseLayer implements Serializable {
         return biases;
     }
 
+    public int getActivation() {
+        return activation;
+    }
 
 }

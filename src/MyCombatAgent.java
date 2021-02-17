@@ -1,6 +1,4 @@
 import edu.cwru.sepia.action.Action;
-import edu.cwru.sepia.action.ActionFeedback;
-import edu.cwru.sepia.action.ActionResult;
 import edu.cwru.sepia.agent.Agent;
 import edu.cwru.sepia.environment.model.history.History;
 import edu.cwru.sepia.environment.model.state.State;
@@ -9,6 +7,7 @@ import edu.cwru.sepia.environment.model.state.UnitTemplate.UnitTemplateView;
 import edu.cwru.sepia.util.Direction;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +35,8 @@ public class MyCombatAgent extends Agent {
             this.enemyPlayerNum = new Integer(args[0]);
         }
 
-        this.population = new Population(10);
+        this.population = new Population(30);
+        this.population = Population.loadPopulation("saved_data/populations/population_110.ser");
 
         System.out.println("In constructor of MyCombatAgent");
 
@@ -68,62 +68,6 @@ public class MyCombatAgent extends Agent {
         System.out.println("In agent initialStep");
 
         return null;
-    }
-
-    @Override
-    public Map<Integer, Action> middleStep(State.StateView state, History.HistoryView history) {
-        // Actions to do
-        Map<Integer, Action> actions = new HashMap<Integer, Action>();
-
-        // Get ids of my units
-        this.myUnitIDs = state.getUnitIds(this.playernum);
-
-        // And list of enemy units
-        this.enemyUnitIDs = state.getUnitIds(this.enemyPlayerNum);
-
-        // Nothing to do, no enemies left
-        if(enemyUnitIDs.size() == 0)
-        {
-            return actions;
-        }
-
-        Matrix inputData = observeEnvironment(state);
-        Matrix results = population.getActions(inputData);
-        //        System.out.print("Input data: " + inputData);
-//        System.out.println("Network result: " + results);
-
-        // Save input data to file
-        try {
-            myWriter.append(inputData.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        int turnNum = state.getTurnNumber();
-
-        // Add actions to do based on network results
-        convertOutputToActions(results.getData()[0], actions);
-
-        return actions;
-    }
-
-    @Override
-    public void terminalStep(State.StateView stateView, History.HistoryView historyView) {
-        System.out.println("In agent terminal step");
-//        System.out.println("Testing next member of population");
-
-        // Switch population to test next member, record if new epoch
-        boolean newEpoch = population.moveToNextMember();
-
-        if (newEpoch) {
-            System.out.println("Epoch: " + population.getEpoch());
-        }
-        // Close file
-//        try {
-//            myWriter.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
     }
 
     @Override
@@ -285,5 +229,68 @@ public class MyCombatAgent extends Agent {
 
         return inputData;
     }
+
+    @Override
+    public Map<Integer, Action> middleStep(State.StateView state, History.HistoryView history) {
+        // Actions to do
+        Map<Integer, Action> actions = new HashMap<Integer, Action>();
+
+        // Get ids of my units
+        this.myUnitIDs = state.getUnitIds(this.playernum);
+
+        // And list of enemy units
+        this.enemyUnitIDs = state.getUnitIds(this.enemyPlayerNum);
+
+        population.evaluateMemberFItness(state, history, myUnitIDs, enemyUnitIDs);
+
+        if(enemyUnitIDs.size() != 2) {
+            System.out.println("Oh my god there are only " + enemyUnitIDs.size() + " left");
+        }
+
+        Matrix inputData = observeEnvironment(state);
+        Matrix results = population.getActions(inputData);
+        //        System.out.print("Input data: " + inputData);
+//        System.out.println("Network result: " + results);
+
+        // Save input data to file
+//        try {
+//            myWriter.append(inputData.toString());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+
+        // Add actions to do based on network results
+        convertOutputToActions(results.getData()[0], actions);
+
+        return actions;
+    }
+
+    @Override
+    public void terminalStep(State.StateView stateView, History.HistoryView historyView) {
+        System.out.println("In agent terminal step");
+
+        // Need to store to print because they get rest in moveToNextMember upon new epoch
+        int[] fitnesses = population.getFitnesses();
+        // Switch population to test next member, record if new epoch
+        boolean newEpoch = population.moveToNextMember();
+
+        if (newEpoch) {
+            System.out.println("Epoch: " + population.getEpoch());
+            System.out.println("Fitnesses: " + Arrays.toString(fitnesses));
+
+            if (population.getEpoch() % 10 == 0)
+            {
+                String file = String.format("saved_data/populations/population_%d.ser", population.getEpoch());
+//                Population.savePopulation(file, population);
+            }
+        }
+        // Close file
+//        try {
+//            myWriter.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+    }
+
 
 }

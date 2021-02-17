@@ -72,6 +72,21 @@ public class Matrix implements Serializable {
         return new Matrix(ret);
     }
 
+    public static Matrix multiply(float a, Matrix b)
+    {
+        int rows = b.data.length;
+        int cols = b.data[0].length;
+
+        float[][] ret = new float[rows][cols];
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                ret[r][c] = a * b.data[r][c];
+            }
+        }
+
+        return new Matrix(ret);
+    }
     /**
      * Return a matrix with uniformly distributed
      * random values in each entry
@@ -115,6 +130,14 @@ public class Matrix implements Serializable {
             ret += "\n";
         }
 
+        return ret;
+    }
+
+    public Matrix clone()
+    {
+        // Start size determined by data and doesn't matter
+        Matrix ret = new Matrix(0,0);
+        ret.data = data.clone();
         return ret;
     }
 
