@@ -6,9 +6,21 @@ import java.util.ArrayList;
 public class Network implements Serializable {
     private ArrayList<DenseLayer> layers;
 
-    public Network()
+    // Store the last N outputs of network as memory
+    // To be fed back in
+    int nMemory;
+    float[] memory;
+
+    public Network(int nMemory)
     {
         this.layers = new ArrayList<DenseLayer>(4);
+        this.nMemory = nMemory;
+        memory = new float[nMemory];
+    }
+
+    public Network()
+    {
+        this(0);
     }
 
     public void addLayer(DenseLayer layer)
@@ -25,6 +37,13 @@ public class Network implements Serializable {
         {
             next = layer.feedForward(next);
         }
+
+        // Store N memories
+        for (int i = 0; i < nMemory; i++)
+        {
+            memory[i] = next.getData()[0][next.getData()[0].length - 1 - i];
+        }
+
         return next;
     }
 
@@ -85,5 +104,7 @@ public class Network implements Serializable {
         return layers.get(index);
     }
 
-
+    public float[] getMemory() {
+        return memory;
+    }
 }

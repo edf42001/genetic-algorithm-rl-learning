@@ -26,6 +26,8 @@ public class MyCombatAgent extends Agent {
 
     private Population population;
 
+    private final boolean watchReplay = true;
+
     public MyCombatAgent(int player, String[] args) {
         super(player);
 
@@ -35,8 +37,12 @@ public class MyCombatAgent extends Agent {
             this.enemyPlayerNum = new Integer(args[0]);
         }
 
-        this.population = new Population(30);
-        this.population = Population.loadPopulation("saved_data/populations/population_110.ser");
+        // Load if watching replay, else make random
+        if (watchReplay) {
+            this.population = Population.loadPopulation(String.format("saved_data/populations/p%d/population_%d.ser", playernum, 360));
+        } else {
+            this.population = new Population(80);
+        }
 
         System.out.println("In constructor of MyCombatAgent");
 
@@ -65,7 +71,7 @@ public class MyCombatAgent extends Agent {
 
     @Override
     public Map<Integer, Action> initialStep(State.StateView state, History.HistoryView history) {
-        System.out.println("In agent initialStep");
+//        System.out.println("In agent initialStep");
 
         return null;
     }
@@ -80,23 +86,32 @@ public class MyCombatAgent extends Agent {
 
     }
 
-    float[][] standardizeInputData(float[][] inputData)
+    /**
+     * Converts input data values to the range [-1, 1]
+     * Using hardcoded ranges
+     * @param inputData The unstandardized data. Is modified in place
+     */
+    public void standardizeInputData(Matrix inputData)
     {
         // Hardcoded mean and std dev values
         // Choose so inputs are in rance (-1, 1)
-        float[] means = {12, 10, 25};
-        float[] stds = {12, 10, 25};
-        int nDataPerUnit = 3;
+        // These are: delX, delY, health for each unit
+        float[] means = {0, 0, 25};
+        float[] stds = {10, 10, 25};
+        int nDataPerUnit = means.length;
 
-        float[][] out = new float[inputData.length][inputData[0].length];
-        for (int i = 0; i< inputData[0].length; i++)
+        // Get reference to data
+        float[] data = inputData.getData()[0];
+
+        // Don't standardize three memory ones
+        for (int i = 0; i< data.length - 3; i++)
         {
-            int index = i % nDataPerUnit;
+            // Index determines what type of data we are normalizing
+            // We start with health for our unit, so it needs to be offset
+            int index = (i + 2) % nDataPerUnit;
             // Standardize: todo: use multiplication not division for speed
-            out[0][i] = (inputData[0][i] - means[index]) / stds[index];
+            data[i] = (data[i] - means[index]) / stds[index];
         }
-
-        return out;
     }
 
     /**
@@ -105,68 +120,63 @@ public class MyCombatAgent extends Agent {
      * @param data output of network, in 1D array form
      * @param actions Resulting actions get put here
      */
-    void convertOutputToActions(float[] data, Map<Integer, Action> actions)
+    void convertOutputToActions(float[] data, Map<Integer, Action> actions, Integer unitID)
     {
-        // each unit takes 8 action slots:
+        // each network provides 8 output action slots:
         // move NE, SE, SW, NW, Attack, 3 slots for which unit to attack
-        int nActionsPerUnit = 8;
 
-        for (int i = 0; i < this.myUnitIDs.size(); i++)
+        // First 5 determine movement direction, or attack
+        // Take max, or no action if none >0.5
+        int maxIndex = -1;
+        float maxValue = 0;
+        for (int j = 0; j < 5; j++) {
+            if (data[j] > 0.5 && data[j] > maxValue) {
+                maxIndex = j;
+                maxValue = data[j];
+            }
+        }
+
+        // If the chosen index is one of the first 4,
+        // Select a direction from the index
+        if (maxIndex >=0 && maxIndex < 4) {
+            Direction dir = Direction.EAST; // Default value so it compiles
+            switch (maxIndex) {
+                case 0:
+                    dir = Direction.NORTHEAST;
+                    break;
+                case 1:
+                    dir = Direction.SOUTHEAST;
+                    break;
+                case 2:
+                    dir = Direction.SOUTHWEST;
+                    break;
+                case 3:
+                    dir = Direction.NORTHWEST;
+                    break;
+                default:
+                    System.err.println("Error: Bad movement index " + maxIndex);
+                    break;
+            }
+            actions.put(unitID, Action.createPrimitiveMove(unitID, dir));
+        }
+
+        // This mean unit wants to attack
+        if (maxIndex == 4)
         {
-            Integer unitID = this.myUnitIDs.get(i);
-            // First 5 determine movement direction, or attack
-            // Take max, or no action if no >0.5
-            int maxIndex = -1;
-            float maxValue = 0;
-            for (int j = nActionsPerUnit * i; j < nActionsPerUnit * i + 5; j++) {
-                if (data[j] > 0.5 && data[j] > maxValue) {
-                    maxIndex = j - nActionsPerUnit * i;
+            // Find max value of indices 5-7,
+            // this indicates which enemy to attack
+            maxIndex = -1;
+            maxValue = -1;
+            for (int j = 5; j < 5 + enemyUnitIDs.size(); j++) {
+                if (data[j] > maxValue) {
+                    maxIndex = j - 5;
                     maxValue = data[j];
                 }
             }
 
-            // If the chosen index is one of the first 4,
-            // Select a direction from the index
-            if (maxIndex >=0 && maxIndex < 4) {
-                Direction dir = Direction.EAST; // Default value so it compiles
-                switch (maxIndex) {
-                    case 0:
-                        dir = Direction.NORTHEAST;
-                        break;
-                    case 1:
-                        dir = Direction.SOUTHEAST;
-                        break;
-                    case 2:
-                        dir = Direction.SOUTHWEST;
-                        break;
-                    case 3:
-                        dir = Direction.NORTHWEST;
-                        break;
-                    default:
-                        System.err.println("Error: Bad movement index " + maxIndex);
-                        break;
-                }
-                actions.put(unitID, Action.createPrimitiveMove(unitID, dir));
-            }
-
-            // This mean unit wants to attack
-            if (maxIndex == 4)
-            {
-                // Find max value of indices 5-7,
-                // this indicates which enemy to attack
-                maxIndex = -1;
-                maxValue = -1;
-                for (int j = nActionsPerUnit * i + 5; j < nActionsPerUnit * i + 5 + enemyUnitIDs.size(); j++) {
-                    if (data[j] > maxValue) {
-                        maxIndex = j - nActionsPerUnit * i - 5;
-                        maxValue = data[j];
-                    }
-                }
-
-                // Look up the enemy id the network wanted to attack
-                Integer enemyID = this.enemyUnitIDs.get(maxIndex);
-                actions.put(unitID, Action.createPrimitiveAttack(unitID, enemyID));
-            }
+            // Look up the enemy id the network wanted to attack
+            Integer enemyID = this.enemyUnitIDs.get(maxIndex);
+            actions.put(unitID, Action.createPrimitiveAttack(unitID, enemyID));
         }
     }
 
@@ -174,35 +184,58 @@ public class MyCombatAgent extends Agent {
      * Reads data from the environment
      * @return Matrix of environment observations to be fed to network
      */
-    public Matrix observeEnvironment(State.StateView state)
+    public Matrix observeEnvironment(State.StateView state, Integer unitID)
     {
 
         // Input data to neural network
-        float[][] data = new float[1][12];
+        // Input consists of, in order:
+        // This units's health. Then for each friendly unit:
+        // Their relative x, y and health.
+        // Then same for each enemy unit
+        // Then 3 memory inputs from last time step
+        // 1 + 3 * 1 + 3 * 2 + 3 = 13
+        float[][] data = new float[1][13];
 
-        for (int i = 0; i< this.myUnitIDs.size(); i++)
+        // Where this unit is. Network sees other units relative to itself
+        UnitView thisUnit = state.getUnit(unitID);
+        int myHealth = thisUnit.getHP();
+        int myX = thisUnit.getXPosition();
+        int myY = thisUnit.getYPosition();
+
+        // First input
+        data[0][0] = myHealth;
+
+        // Loop through remainder of friendly units
+        int iUnit = 0; // Used to count units, as our doesn't count
+        for (Integer id : this.myUnitIDs)
         {
-            // Collect data on unit
-            UnitView unit = state.getUnit(this.myUnitIDs.get(i));
-            UnitTemplateView unitTemplate = unit.getTemplateView();
-            String unitName = unitTemplate.getName();
-            int unitHealth = unit.getHP();
-            int unitX = unit.getXPosition();
-            int unitY = unit.getYPosition();
-            int unitRange = unitTemplate.getRange();
-            int unitDamage = unitTemplate.getBasicAttack();
+            // Our unit isn't observed by itself
+            if (!id.equals(unitID)) {
+                // Collect data on unit
+                UnitView unit = state.getUnit(id);
+                UnitTemplateView unitTemplate = unit.getTemplateView();
+                String unitName = unitTemplate.getName();
+                int unitHealth = unit.getHP();
+                int unitX = unit.getXPosition();
+                int unitY = unit.getYPosition();
+                int unitRange = unitTemplate.getRange();
+                int unitDamage = unitTemplate.getBasicAttack();
 
-            data[0][3*i] = unitX;
-            data[0][3*i+1] = unitY;
-            data[0][3*i+2] = unitHealth;
+                // Fill in inputs in right place
+                data[0][3 * iUnit + 1] = unitX - myX;
+                data[0][3 * iUnit + 2] = unitY - myY;
+                data[0][3 * iUnit + 3] = unitHealth;
+
+                iUnit++; // Next unit
 //            data[0][i+3] = unitRange; // dont need, constant for now
 //            data[0][i+4] = unitDamage; // same TODO add canMove?
 
-
 //            System.out.printf("Unit: %s, Health: %d, X: %d, Y: %d, Range: %d, Damage: %d\n",
 //                    unitName, unitHealth, unitX, unitY, unitRange, unitDamage);
+            }
         }
 
+        // Fill in all enemy input data
         for (int i = 0; i< this.enemyUnitIDs.size(); i++)
         {
             // Collect data on unit
@@ -215,17 +248,25 @@ public class MyCombatAgent extends Agent {
             int unitRange = unitTemplate.getRange();
             int unitDamage = unitTemplate.getBasicAttack();
 
-            // Assume two of our units with 3 data points each
-            data[0][3*i+6] = unitX;
-            data[0][3*i+7] = unitY;
-            data[0][3*i+8] = unitHealth;
+            // Our health + 3 data points per 1 friendly unit
+            // means that enemy unit info starts at i=4
+            data[0][3*i+4] = unitX - myX;
+            data[0][3*i+5] = unitY - myY;
+            data[0][3*i+6] = unitHealth;
 
 //            System.out.printf("Enemy Unit: %s, Health: %d, X: %d, Y: %d, Range: %d, Damage: %d\n",
 //                    unitName, unitHealth, unitX, unitY, unitRange, unitDamage);
         }
+
+        float[] memory = population.getCurrentNetwork().getMemory();
+
+        for (int i = 0; i < memory.length; i++)
+        {
+            data[0][10 + i] = memory[i];
+        }
         // Create matrix with input data
-        Matrix inputData = new Matrix(1, 12);
-        inputData.setData(standardizeInputData(data));
+        Matrix inputData = new Matrix(1, data.length);
+        inputData.setData(data);
 
         return inputData;
     }
@@ -241,16 +282,20 @@ public class MyCombatAgent extends Agent {
         // And list of enemy units
         this.enemyUnitIDs = state.getUnitIds(this.enemyPlayerNum);
 
-        population.evaluateMemberFItness(state, history, myUnitIDs, enemyUnitIDs);
+        population.middleFitnessUpdate(state, history, myUnitIDs, enemyUnitIDs);
 
-        if(enemyUnitIDs.size() != 2) {
-            System.out.println("Oh my god there are only " + enemyUnitIDs.size() + " left");
+        // Run each unit's neural network
+        // They are all the same network,
+        // But each unit sees different things
+        for (Integer unitID : myUnitIDs)
+        {
+            Matrix inputData = observeEnvironment(state, unitID);
+            standardizeInputData(inputData);
+            Matrix output = population.getActions(inputData);
+            convertOutputToActions(output.getData()[0], actions, unitID);
+//            System.out.print("Input data: " + inputData);
+//            System.out.print("Network result: " + output);
         }
-
-        Matrix inputData = observeEnvironment(state);
-        Matrix results = population.getActions(inputData);
-        //        System.out.print("Input data: " + inputData);
-//        System.out.println("Network result: " + results);
 
         // Save input data to file
 //        try {
@@ -259,15 +304,14 @@ public class MyCombatAgent extends Agent {
 //            e.printStackTrace();
 //        }
 
-        // Add actions to do based on network results
-        convertOutputToActions(results.getData()[0], actions);
-
         return actions;
     }
 
     @Override
-    public void terminalStep(State.StateView stateView, History.HistoryView historyView) {
-        System.out.println("In agent terminal step");
+    public void terminalStep(State.StateView state, History.HistoryView history) {
+//        System.out.println("In agent terminal step");
+
+        population.terminalFitnessUpdate(state, history, myUnitIDs, enemyUnitIDs);
 
         // Need to store to print because they get rest in moveToNextMember upon new epoch
         int[] fitnesses = population.getFitnesses();
@@ -278,11 +322,15 @@ public class MyCombatAgent extends Agent {
             System.out.println("Epoch: " + population.getEpoch());
             System.out.println("Fitnesses: " + Arrays.toString(fitnesses));
 
-            if (population.getEpoch() % 10 == 0)
-            {
-                String file = String.format("saved_data/populations/population_%d.ser", population.getEpoch());
-//                Population.savePopulation(file, population);
+            // Only save new agents if not replaying
+            if (!watchReplay) {
+                if (population.getEpoch() % 20 == 0)
+                {
+                    String file = String.format("saved_data/populations/p%d/population_%d.ser", playernum, population.getEpoch());
+                    Population.savePopulation(file, population);
+                }
             }
+
         }
         // Close file
 //        try {

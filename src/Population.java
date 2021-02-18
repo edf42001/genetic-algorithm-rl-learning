@@ -4,6 +4,7 @@ import edu.cwru.sepia.environment.model.state.State;
 import edu.cwru.sepia.environment.model.state.Unit;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -13,25 +14,26 @@ import java.util.Random;
  */
 public class Population implements Serializable {
     // Population of individuals
-    Network[] population;
+    private Network[] population;
 
     // Fitness scores for each individual
-    int[] fitnesses;
+    private int[] fitnesses;
 
     // Number of members in population
-    int populationSize;
+    private int populationSize;
 
     // Which network are we testing right now and its index
-    Network currentNetwork;
-    int currentIndex;
+    private Network currentNetwork;
+    private int currentIndex;
 
     // Generation count
-    int epoch;
+    private int epoch;
 
     // Genetic evolution config
-    float mutationRate = 0.01f;
-    float mutationStepSize = 1.0f;
-    float elitePercent = 0.1f;
+    private float mutationRate = 0.05f;
+    private float mutationStepSize = 1.0f;
+    private float elitePercent = 0.1f;
+    private float randomPercent = 0.05f;
 
     Random random = new Random();
 
@@ -42,10 +44,10 @@ public class Population implements Serializable {
         for (int i = 0; i < populationSize; i++) {
             // TODO Network features are hardcoded in the population class? That's weird
             // Create random population
-            Network network = new Network();
-            network.addLayer(new DenseLayer(12, 16, "relu"));
-            network.addLayer(new DenseLayer(16, 16, "relu"));
-            network.addLayer(new DenseLayer(16, 16, "sigmoid"));
+            Network network = new Network(3); // 3 Memory neurons
+            network.addLayer(new DenseLayer(10, 8, "relu"));
+            network.addLayer(new DenseLayer(8, 8, "relu"));
+            network.addLayer(new DenseLayer(8, 11, "sigmoid"));
             population[i] = network;
         }
 
@@ -93,25 +95,54 @@ public class Population implements Serializable {
      */
     public void selectNextPopulation()
     {
+        // Next generation
+        Network[] nextPop = new Network[populationSize];
+
         // Cumulative weights, used for roullete selection
         int[] cumulative = new int[populationSize];
+
+        // Sort top N to select them for the next generation
+        // because they are the elite
+        int numElite = (int) (elitePercent * populationSize);
+        int[] topNIndices = sortTopN(cumulative, numElite);
+
+        // Extract the top N most fittest individuals for the next population
+        for (int i = 0; i < numElite; i++)
+        {
+            nextPop[i] = population[topNIndices[populationSize - 1 - i]].clone();
+        }
+
         cumulative[0] = fitnesses[0];
         for (int i = 1; i < populationSize; i++) {
             cumulative[i] = fitnesses[i] + cumulative[i-1];
         }
 
-        // Next generation
-        Network[] nextPop = new Network[populationSize];
+        // Choose some amount of random parents to reproduce
+        int numRandom = (int) (randomPercent * populationSize);
 
-        // Create N new baby networks
-        for (int i = 0; i < populationSize; i++) {
+        for (int i = numElite; i < numElite + numRandom; i++) {
             // Choose parents based on fitness randomly
-            int index1 = randomIndex(cumulative);
-            int index2 = randomIndex(cumulative);
+            int index1 = random.nextInt(populationSize);
+            int index2 = random.nextInt(populationSize);
             Network parent1 = population[index1];
             Network parent2 = population[index2];
 
-            System.out.println("Selected indices " + index1 + ", " + index2);
+            // Crossover and mutate the baby
+            Network baby = crossover(parent1, parent2);
+            mutate(baby);
+            nextPop[i] = baby;  // Add to new population
+        }
+
+        // Create N new baby networks
+        // (minus the elite and random already selected)
+        for (int i = numElite + numRandom; i < populationSize; i++) {
+            // Choose parents based on fitness randomly
+            int index1 = randomWeightedIndex(cumulative);
+            int index2 = randomWeightedIndex(cumulative);
+            Network parent1 = population[index1];
+            Network parent2 = population[index2];
+
+//            System.out.println("Selected indices " + index1 + ", " + index2);
 
             // Crossover and mutate the baby
             Network baby = crossover(parent1, parent2);
@@ -122,7 +153,7 @@ public class Population implements Serializable {
         population = nextPop;
     }
 
-    public int randomIndex(int[] cumulative)
+    public int randomWeightedIndex(int[] cumulative)
     {
         // Max value is the total value (last value of cumulative)
         int randValue = random.nextInt(cumulative[cumulative.length-1]);
@@ -193,12 +224,12 @@ public class Population implements Serializable {
 
     /**
      * Uses information from the game state and last turn history
-     * to find the member's fitness
+     * to find the member's fitness. Run every step
      * @param state
      * @param history
      */
-    public void evaluateMemberFItness(State.StateView state, History.HistoryView history,
-                                      List<Integer> myUnitIDs, List<Integer> enemyUnitIDs)
+    public void middleFitnessUpdate(State.StateView state, History.HistoryView history,
+                                    List<Integer> myUnitIDs, List<Integer> enemyUnitIDs)
     {
         // Current fitness function:
         // +1 point for every time step spent within 5 spaces of an enemy
@@ -207,9 +238,10 @@ public class Population implements Serializable {
         // And will overwhelm the danger bonus, so agents can ignore that
         // If fitness is 0 set it to 1 so the math doesn't break
 
-        int dangerWeight = 1;
+        int dangerWeight = 0;
         int damageWeight = 20;
-        int dangerDistance = 6;
+        int enemyDamageWeight = 0;
+        int dangerDistance = 1;
 
         int turnNum = state.getTurnNumber();
 
@@ -222,12 +254,13 @@ public class Population implements Serializable {
             int unitX = unit.getXPosition();
             int unitY = unit.getYPosition();
 
+            // Check enemy units to see if we are close
             for (Integer enemyUnitID : enemyUnitIDs)
             {
                 Unit.UnitView enemyUnit = state.getUnit(enemyUnitID);
                 int enemyUnitX = enemyUnit.getXPosition();
                 int enemyUnitY = enemyUnit.getYPosition();
-                if (Math.max(Math.abs(enemyUnitX - unitX), Math.abs(enemyUnitY - unitY)) < dangerDistance)
+                if (Math.max(Math.abs(enemyUnitX - unitX), Math.abs(enemyUnitY - unitY)) <= dangerDistance)
                 {
                     fitnesses[currentIndex] += dangerWeight;
                     break; // Only one point per unit (not for each enemy)
@@ -244,14 +277,30 @@ public class Population implements Serializable {
             {
                 // Add to fitness
                 int damage = damageLog.getDamage();
-                System.err.println("YAYAYAYAYAYYA");
                 fitnesses[currentIndex] += damageWeight * damage;
+            }
+            else  // The enemy attacked us
+            {
+                // Subtract from fitness
+                int damage = damageLog.getDamage();
+                fitnesses[currentIndex] += enemyDamageWeight * damage;
             }
         }
 
-        // Just in case
-        //TODO this only needs to be done once upon creation of array
-        if (fitnesses[currentIndex] == 0) {
+    }
+
+    /**
+     * Fitness calculations that are best done once, at the end of a run
+     * @param state
+     * @param history
+     * @param myUnitIDs
+     * @param enemyUnitIDs
+     */
+    public void terminalFitnessUpdate(State.StateView state, History.HistoryView history,
+                                    List<Integer> myUnitIDs, List<Integer> enemyUnitIDs) {
+
+        // Make sure all fitnesses are at least non-0
+        if (fitnesses[currentIndex] <= 0) {
             fitnesses[currentIndex] = 1;
         }
     }
@@ -295,5 +344,46 @@ public class Population implements Serializable {
             e.printStackTrace();
             return null;
         }
+    }
+
+    /**
+     * Sorts an array, but only the top N values
+     * This is used to select N best members from population
+     * @param data Array to sort
+     * @param n Number of biggest numbers to sort
+     */
+    public static int[] sortTopN(int[] data, int n)
+    {
+        // The indices of the top N members
+        // based on the fitnesses in data
+        int[] indices = new int[data.length];
+        for (int i = 0; i < indices.length; i++) {
+            indices[i] = i;
+        }
+
+        for (int i = 0; i < n; i++)
+        {
+            // Do selection sort
+            int maxIndex = 0;
+            for (int j = 0; j < data.length - i; j++)
+            {
+                if (data[j] > data[maxIndex]) {
+                    maxIndex = j;
+                }
+            }
+            // Swap indices with values to keep track
+            int tmp = data[data.length - 1 - i];
+            int tmpI = indices[data.length - 1 - i];
+            data[data.length - 1 - i] = data[maxIndex];
+            indices[data.length - 1 - i] = indices[maxIndex];
+            data[maxIndex] = tmp;
+            indices[maxIndex] = tmpI;
+        }
+
+        return indices;
+    }
+
+    public Network getCurrentNetwork() {
+        return currentNetwork;
     }
 }
