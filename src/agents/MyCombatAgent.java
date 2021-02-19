@@ -1,3 +1,5 @@
+package agents;
+
 import edu.cwru.sepia.action.Action;
 import edu.cwru.sepia.agent.Agent;
 import edu.cwru.sepia.environment.model.history.History;
@@ -5,6 +7,8 @@ import edu.cwru.sepia.environment.model.state.State;
 import edu.cwru.sepia.environment.model.state.Unit.UnitView;
 import edu.cwru.sepia.environment.model.state.UnitTemplate.UnitTemplateView;
 import edu.cwru.sepia.util.Direction;
+import genetics.Population;
+import network.math.Matrix;
 
 import java.io.*;
 import java.util.Arrays;
@@ -26,7 +30,7 @@ public class MyCombatAgent extends Agent {
 
     private Population population;
 
-    private final boolean watchReplay = true;
+    private final boolean watchReplay = false;
 
     public MyCombatAgent(int player, String[] args) {
         super(player);
@@ -44,7 +48,7 @@ public class MyCombatAgent extends Agent {
             this.population = new Population(80);
         }
 
-        System.out.println("In constructor of MyCombatAgent");
+        System.out.println("In constructor of agents.MyCombatAgent");
 
         // Create files to save data
         File dataFile = new File("saved_data/netInputData.csv");
@@ -182,7 +186,7 @@ public class MyCombatAgent extends Agent {
 
     /**
      * Reads data from the environment
-     * @return Matrix of environment observations to be fed to network
+     * @return network.math.Matrix of environment observations to be fed to network
      */
     public Matrix observeEnvironment(State.StateView state, Integer unitID)
     {
@@ -196,7 +200,7 @@ public class MyCombatAgent extends Agent {
         // 1 + 3 * 1 + 3 * 2 + 3 = 13
         float[][] data = new float[1][13];
 
-        // Where this unit is. Network sees other units relative to itself
+        // Where this unit is. network.Network sees other units relative to itself
         UnitView thisUnit = state.getUnit(unitID);
         int myHealth = thisUnit.getHP();
         int myX = thisUnit.getXPosition();
@@ -294,7 +298,7 @@ public class MyCombatAgent extends Agent {
             Matrix output = population.getActions(inputData);
             convertOutputToActions(output.getData()[0], actions, unitID);
 //            System.out.print("Input data: " + inputData);
-//            System.out.print("Network result: " + output);
+//            System.out.print("network.Network result: " + output);
         }
 
         // Save input data to file
@@ -324,7 +328,7 @@ public class MyCombatAgent extends Agent {
 
             // Only save new agents if not replaying
             if (!watchReplay) {
-                if (population.getEpoch() % 20 == 0)
+                if (population.getEpoch() % 50 == 0)
                 {
                     String file = String.format("saved_data/populations/p%d/population_%d.ser", playernum, population.getEpoch());
                     Population.savePopulation(file, population);

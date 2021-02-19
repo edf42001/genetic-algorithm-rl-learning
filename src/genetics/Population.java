@@ -1,19 +1,23 @@
+package genetics;
+
 import edu.cwru.sepia.environment.model.history.DamageLog;
 import edu.cwru.sepia.environment.model.history.History;
 import edu.cwru.sepia.environment.model.state.State;
 import edu.cwru.sepia.environment.model.state.Unit;
+import network.math.Matrix;
+import network.Network;
+import network.layers.DenseLayer;
 
 import java.io.*;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
 /**
- * Population manager
+ * genetics.Population manager
  * Runs genetic algorithm
  */
 public class Population implements Serializable {
-    // Population of individuals
+    // genetics.Population of individuals
     private Network[] population;
 
     // Fitness scores for each individual
@@ -42,12 +46,12 @@ public class Population implements Serializable {
         this.population = new Network[populationSize];
 
         for (int i = 0; i < populationSize; i++) {
-            // TODO Network features are hardcoded in the population class? That's weird
+            // TODO network.Network features are hardcoded in the population class? That's weird
             // Create random population
             Network network = new Network(3); // 3 Memory neurons
-            network.addLayer(new DenseLayer(10, 8, "relu"));
-            network.addLayer(new DenseLayer(8, 8, "relu"));
-            network.addLayer(new DenseLayer(8, 11, "sigmoid"));
+            network.addLayer(new DenseLayer(10, 16, "relu"));
+            network.addLayer(new DenseLayer(16, 16, "relu"));
+            network.addLayer(new DenseLayer(16, 11, "sigmoid"));
             population[i] = network;
         }
 

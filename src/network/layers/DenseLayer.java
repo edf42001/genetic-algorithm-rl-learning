@@ -1,3 +1,7 @@
+package network.layers;
+
+import network.math.Matrix;
+
 import java.io.Serializable;
 
 /***

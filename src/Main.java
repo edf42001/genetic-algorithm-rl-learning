@@ -1,7 +1,7 @@
-import sun.nio.ch.Net;
-
-import java.io.*;
-import java.util.Random;
+import genetics.Population;
+import network.math.Matrix;
+import network.Network;
+import network.layers.DenseLayer;
 
 public class Main {
 
@@ -70,8 +70,8 @@ public class Main {
 
         System.out.println(a);
         System.out.println(b);
-//        System.out.println(Matrix.add(a, b));
+//        System.out.println(network.math.Matrix.add(a, b));
         System.out.println(Matrix.multiply(a, b));
-//        System.out.println(Matrix.randomMatrix(2, 2));
+//        System.out.println(network.math.Matrix.randomMatrix(2, 2));
     }
 }

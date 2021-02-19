@@ -1,7 +1,10 @@
-import sun.nio.ch.Net;
+package network;
 
 import java.io.*;
 import java.util.ArrayList;
+
+import network.layers.DenseLayer;
+import network.math.Matrix;
 
 public class Network implements Serializable {
     private ArrayList<DenseLayer> layers;
@@ -50,7 +53,7 @@ public class Network implements Serializable {
     /**
      * Save a network object to a file
      * @param file Filepath
-     * @param network Network object to save
+     * @param network network.Network object to save
      */
     public static void saveNetwork(String file, Network network)
     {
@@ -68,7 +71,7 @@ public class Network implements Serializable {
     /**
      * Read a network object from a file
      * @param file Filepath
-     * @return Network stored in file, or null if error
+     * @return network.Network stored in file, or null if error
      */
     public static Network loadNetwork(String file)
     {
