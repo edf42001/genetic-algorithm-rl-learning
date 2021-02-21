@@ -255,17 +255,18 @@ public class Matrix implements Serializable {
         }
         return n;
     }
+
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
     //Mutation function for genetic algorithm
-
-    public void mutate(float mutationRate) {
+    public void mutate(float mutationRate, float mutationSize) {
         //for each element in the matrix
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                float rand = MyRand.randFloat();
-                if (rand < mutationRate) {//if chosen to be mutated
-                    data[i][j] += (MyRand.randFloat() - 0.5) / 2.5;//add a random value to it(can be negative)
+                //if chosen to be mutated
+                if (MyRand.randFloat() < mutationRate) {
+                    data[i][j] += 2 * mutationSize * (MyRand.randFloat() - 0.5);
 
+                    //TODO implement bounds on mutation?
 //					//set the boundaries to 1 and -1
 //					if (matrix[i][j]>1) {
 //						matrix[i][j] = 1;
@@ -286,12 +287,14 @@ public class Matrix implements Serializable {
         //pick a random point in the matrix
         int randC = (int) Math.floor(MyRand.randInt(cols));
         int randR = (int) Math.floor(MyRand.randInt(rows));
+
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-
-                if ((i < randR) || (i == randR && j <= randC)) { //if before the random point then copy from this matric
+                if ((i < randR) || (i == randR && j <= randC)) {
+                    // If before the random point then copy from this matrix
                     child.data[i][j] = data[i][j];
-                } else { //if after the random point then copy from the parameter array
+                } else {
+                    //if after the random point then copy from the parameter array
                     child.data[i][j] = partner.data[i][j];
                 }
             }

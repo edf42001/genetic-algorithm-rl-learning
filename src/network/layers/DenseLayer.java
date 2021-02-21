@@ -71,6 +71,12 @@ public class DenseLayer extends Layer {
         return out;
     }
 
+    @Override
+    public void mutate(float mutationRate, float mutationSize) {
+        weights.mutate(mutationRate, mutationSize);
+        biases.mutate(mutationRate, mutationSize);
+    }
+
     public static Matrix relu(Matrix a)
     {
         float[][] data = a.getData();

@@ -27,4 +27,6 @@ public abstract class Layer implements Serializable {
     public int getOutputSize() {
         return outputSize;
     }
+
+    public abstract void mutate(float mutationRate, float mutationSize);
 }

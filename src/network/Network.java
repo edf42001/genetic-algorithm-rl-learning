@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.ArrayList;
 
 import network.layers.DenseLayer;
+import network.layers.Layer;
 import network.math.Matrix;
 
 public class Network implements Serializable {
@@ -49,6 +50,42 @@ public class Network implements Serializable {
 
         return next;
     }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Crosses over two networks
+     * @param other The other network this is being crossed with
+     * @return New crossed network
+     */
+    public Network crossover(Network other) {
+        Network child = new Network(nMemory);
+
+        for (int i = 0; i < this.getLayers().size(); i++) {
+            DenseLayer layerA = this.getLayer(i);
+            DenseLayer layerB = other.getLayer(i);
+            Matrix aWeights = layerA.getWeights();
+            Matrix aBiases = layerA.getBiases();
+            Matrix bWeights = layerB.getWeights();
+            Matrix bBiases = layerB.getBiases();
+
+            Matrix newWeights = aWeights.crossover(bWeights);
+            Matrix newBiases = aBiases.crossover(bBiases);
+
+            DenseLayer childLayer = new DenseLayer(newWeights, newBiases, layerA.getActivation());
+            child.addLayer(childLayer);
+        }
+
+        return child;
+    }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    public void mutate(float mutationRate, float mutationSize)
+    {
+        for (Layer layer : this.layers) {
+            layer.mutate(mutationRate, mutationSize);
+        }
+
+    }
 
     /**
      * Save a network object to a file
@@ -87,16 +124,18 @@ public class Network implements Serializable {
             return null;
         }
     }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
     public Network clone()
     {
-        Network ret = new Network();
+        Network ret = new Network(nMemory);
         for (DenseLayer layer : this.layers)
         {
             ret.addLayer(layer.clone());
         }
         return ret;
     }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
     public ArrayList<DenseLayer> getLayers() {
         return layers;

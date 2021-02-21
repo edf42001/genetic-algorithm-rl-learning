@@ -1,34 +1,25 @@
 package genetics;
 
-import edu.cwru.sepia.environment.model.history.DamageLog;
-import edu.cwru.sepia.environment.model.history.History;
-import edu.cwru.sepia.environment.model.state.State;
-import edu.cwru.sepia.environment.model.state.Unit;
 import network.math.Matrix;
 import network.Network;
 import network.layers.DenseLayer;
 import network.math.MyRand;
 
 import java.io.*;
-import java.util.List;
-import java.util.Random;
 
 /**
  * genetics.Population manager
  * Runs genetic algorithm
  */
 public class Population implements Serializable {
-    // genetics.Population of individuals
-    private Network[] population;
-
-    // Fitness scores for each individual
-    private int[] fitnesses;
+    // Population of individuals
+    private Player[] players;
 
     // Number of members in population
     private int populationSize;
 
-    // Which network are we testing right now and its index
-    private Network currentNetwork;
+    // Which player are we testing right now and its index
+    private Player currentPlayer;
     private int currentIndex;
 
     // Generation count
@@ -40,27 +31,18 @@ public class Population implements Serializable {
     private float elitePercent = 0.1f;
     private float randomPercent = 0.05f;
 
-    Random random = new Random();
-
     public Population(int populationSize)
     {
-        this.population = new Network[populationSize];
+        this.players = new Player[populationSize];
 
         for (int i = 0; i < populationSize; i++) {
-            // TODO network.Network features are hardcoded in the population class? That's weird
-            // Create random population
-            Network network = new Network(3); // 3 Memory neurons
-            network.addLayer(new DenseLayer(13, 16, "relu"));
-            network.addLayer(new DenseLayer(16, 16, "relu"));
-            network.addLayer(new DenseLayer(16, 11, "sigmoid"));
-            population[i] = network;
+            this.players[i] = new Player();
         }
 
         this.populationSize = populationSize;
         this.currentIndex = 0;
-        this.currentNetwork = population[0];
+        this.currentPlayer = this.players[0];
         this.epoch = 0;
-        this.fitnesses = new int[populationSize];
     }
 
     /**
@@ -71,16 +53,15 @@ public class Population implements Serializable {
         // If all members tested
         if (currentIndex == populationSize - 1)
         {
-            selectNextPopulation();
-            fitnesses = new int[populationSize];
+            naturalSelection();
             currentIndex = 0;
-            currentNetwork = population[0];
+            currentPlayer = players[0];
             epoch += 1;
             return true;
         }
         // Otherwise
         currentIndex += 1;
-        currentNetwork = population[currentIndex];
+        currentPlayer = players[currentIndex];
         return false;
     }
 
@@ -91,85 +72,82 @@ public class Population implements Serializable {
      */
     public Matrix getActions(Matrix inputData)
     {
-        return currentNetwork.feedForward(inputData);
+        return currentPlayer.useBrain(inputData);
     }
 
     /**
      * Genetically recombine fittest individuals
      * to form the next population
      */
-    public void selectNextPopulation()
+    public void naturalSelection()
     {
         // Next generation
-        Network[] nextPop = new Network[populationSize];
+        Player[] nextPop = new Player[populationSize];
 
-        // Cumulative weights, used for roullete selection
-        int[] cumulative = new int[populationSize];
+        // Cumulative weights, used for roulette selection
+        int[] roulette = new int[populationSize];
 
         // Sort top N to select them for the next generation
         // because they are the elite
         int numElite = (int) (elitePercent * populationSize);
-        int[] topNIndices = sortTopN(cumulative, numElite);
+        int[] topNIndices = sortTopN(roulette, numElite);
 
         // Extract the top N most fittest individuals for the next population
         for (int i = 0; i < numElite; i++)
         {
-            nextPop[i] = population[topNIndices[populationSize - 1 - i]].clone();
+            nextPop[i] = players[topNIndices[populationSize - 1 - i]].clone();
         }
 
-        cumulative[0] = fitnesses[0];
+        // Create roulette cumulative array for random selection
+        roulette[0] = players[0].getFitness();
         for (int i = 1; i < populationSize; i++) {
-            cumulative[i] = fitnesses[i] + cumulative[i-1];
+            roulette[i] = players[i].getFitness() + roulette[i-1];
         }
 
         // Choose some amount of random parents to reproduce
         int numRandom = (int) (randomPercent * populationSize);
 
         for (int i = numElite; i < numElite + numRandom; i++) {
-            // Choose parents based on fitness randomly
-            int index1 = MyRand.randInt(populationSize);
-            int index2 = MyRand.randInt(populationSize);
-            Network parent1 = population[index1];
-            Network parent2 = population[index2];
+            // Choose parents completely randomly
+            Player p1 = players[MyRand.randInt(populationSize)];
+            Player p2 = players[MyRand.randInt(populationSize)];
 
             // Crossover and mutate the baby
-            Network baby = crossover(parent1, parent2);
-            mutate(baby);
-            nextPop[i] = baby;  // Add to new population
+            Player child = p1.crossover(p2);
+            child.mutate(mutationRate, mutationStepSize);
+            nextPop[i] = child;  // Add to new population
         }
 
         // Create N new baby networks
         // (minus the elite and random already selected)
         for (int i = numElite + numRandom; i < populationSize; i++) {
             // Choose parents based on fitness randomly
-            int index1 = randomWeightedIndex(cumulative);
-            int index2 = randomWeightedIndex(cumulative);
-            Network parent1 = population[index1];
-            Network parent2 = population[index2];
-
-//            System.out.println("Selected indices " + index1 + ", " + index2);
+            Player p1 = rouletteSelection(roulette);
+            Player p2 = rouletteSelection(roulette);
 
             // Crossover and mutate the baby
-            Network baby = crossover(parent1, parent2);
-            mutate(baby);
-            nextPop[i] = baby;  // Add to new population
+            Player child = p1.crossover(p2);
+            child.mutate(mutationRate, mutationStepSize);
+            nextPop[i] = child;  // Add to new population
         }
 
-        population = nextPop;
+        players = nextPop;
     }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    public int randomWeightedIndex(int[] cumulative)
+    public Player rouletteSelection(int[] cumulative)
     {
         // Max value is the total value (last value of cumulative)
         int randValue = MyRand.randInt(cumulative[cumulative.length-1]);
         for (int i = 0; i < cumulative.length; i++) {
             if (randValue < cumulative[i]) {
-                return i;
+                return players[i];
             }
         }
         // Should never reach here
-        return cumulative.length - 1;
+        return players[cumulative.length - 1];
     }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
     public Network crossover(Network a, Network b)
     {
@@ -185,9 +163,12 @@ public class Population implements Serializable {
             Matrix bWeights = layerB.getWeights();
             Matrix bBiases = layerB.getBiases();
 
-            float ratio = MyRand.randFloat();
-            Matrix newWeights = aWeights.multiply(ratio).add(bWeights.multiply(1 - ratio));
-            Matrix newBiases = aBiases.multiply(ratio).add(bBiases.multiply(1 - ratio));
+            Matrix newWeights = aWeights.crossover(bWeights);
+            Matrix newBiases = aBiases.crossover(bBiases);
+
+//            float ratio = MyRand.randFloat();
+//            Matrix newWeights = aWeights.multiply(ratio).add(bWeights.multiply(1 - ratio));
+//            Matrix newBiases = aBiases.multiply(ratio).add(bBiases.multiply(1 - ratio));
 
             DenseLayer childLayer = new DenseLayer(newWeights, newBiases, layerA.getActivation());
             child.addLayer(childLayer);
@@ -196,6 +177,7 @@ public class Population implements Serializable {
 
         return child;
     }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
     public void mutate(Network network)
     {
@@ -224,102 +206,31 @@ public class Population implements Serializable {
             }
         }
     }
-
-    /**
-     * Uses information from the game state and last turn history
-     * to find the member's fitness. Run every step
-     * @param state
-     * @param history
-     */
-    public void middleFitnessUpdate(State.StateView state, History.HistoryView history,
-                                    List<Integer> myUnitIDs, List<Integer> enemyUnitIDs)
-    {
-        // Current fitness function:
-        // +1 point for every time step spent within 5 spaces of an enemy
-        // This encourages agents to go near enemies (danger bonus)
-        // 10 * damage dealt to opponents. This encourages agents to murder
-        // And will overwhelm the danger bonus, so agents can ignore that
-        // If fitness is 0 set it to 1 so the math doesn't break
-
-        int dangerWeight = 0;
-        int damageWeight = 20;
-        int enemyDamageWeight = 0;
-        int dangerDistance = 1;
-
-        int turnNum = state.getTurnNumber();
-
-        // Check danger bonus fitness
-        // For every unit see if close to enemy
-        for (Integer unitID : myUnitIDs)
-        {
-            // Get unit x and y
-            Unit.UnitView unit = state.getUnit(unitID);
-            int unitX = unit.getXPosition();
-            int unitY = unit.getYPosition();
-
-            // Check enemy units to see if we are close
-            for (Integer enemyUnitID : enemyUnitIDs)
-            {
-                Unit.UnitView enemyUnit = state.getUnit(enemyUnitID);
-                int enemyUnitX = enemyUnit.getXPosition();
-                int enemyUnitY = enemyUnit.getYPosition();
-                if (Math.max(Math.abs(enemyUnitX - unitX), Math.abs(enemyUnitY - unitY)) <= dangerDistance)
-                {
-                    fitnesses[currentIndex] += dangerWeight;
-                    break; // Only one point per unit (not for each enemy)
-                }
-            }
-        }
-
-        // Check damage logs
-        List<DamageLog> damageLogs = history.getDamageLogs(turnNum - 1);
-        for (DamageLog damageLog : damageLogs)
-        {
-            // If we did the damage
-            if (myUnitIDs.contains(damageLog.getAttackerID()))
-            {
-                // Add to fitness
-                int damage = damageLog.getDamage();
-                fitnesses[currentIndex] += damageWeight * damage;
-            }
-            else  // The enemy attacked us
-            {
-                // Subtract from fitness
-                int damage = damageLog.getDamage();
-                fitnesses[currentIndex] += enemyDamageWeight * damage;
-            }
-        }
-
-    }
-
-    /**
-     * Fitness calculations that are best done once, at the end of a run
-     * @param state
-     * @param history
-     * @param myUnitIDs
-     * @param enemyUnitIDs
-     */
-    public void terminalFitnessUpdate(State.StateView state, History.HistoryView history,
-                                    List<Integer> myUnitIDs, List<Integer> enemyUnitIDs) {
-
-        // Make sure all fitnesses are at least non-0
-        if (fitnesses[currentIndex] <= 0) {
-            fitnesses[currentIndex] = 1;
-        }
-    }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
     public int getEpoch() {
         return epoch;
     }
 
-    public int[] getFitnesses() {
-        return fitnesses;
+    public Player getMember(int index)
+    {
+        return players[index];
     }
 
-    public Network getMember(int index)
-    {
-        return population[index];
+    public Player getCurrentPlayer() {
+        return currentPlayer;
     }
+
+    public int[] getFitnesses() {
+        int[] ret = new int[populationSize];
+
+        for (int i = 0; i < populationSize; i++)
+        {
+            ret[i] = players[i].getFitness();
+        }
+        return ret;
+    }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
     public static void savePopulation(String file, Population population)
     {
@@ -333,6 +244,7 @@ public class Population implements Serializable {
             e.printStackTrace();
         }
     }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
     public static Population loadPopulation(String file)
     {
@@ -348,6 +260,7 @@ public class Population implements Serializable {
             return null;
         }
     }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /**
      * Sorts an array, but only the top N values
@@ -384,9 +297,5 @@ public class Population implements Serializable {
         }
 
         return indices;
-    }
-
-    public Network getCurrentNetwork() {
-        return currentNetwork;
     }
 }
