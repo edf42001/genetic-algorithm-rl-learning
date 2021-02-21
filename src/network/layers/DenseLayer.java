@@ -2,17 +2,12 @@ package network.layers;
 
 import network.math.Matrix;
 
-import java.io.Serializable;
-
 /***
 A fully connected layer in a
  neural network
 
  ***/
-public class DenseLayer implements Serializable {
-    private int inputSize;
-    private int outputSize;
-
+public class DenseLayer extends Layer {
     private Matrix weights;
     private Matrix biases;
 
@@ -53,11 +48,12 @@ public class DenseLayer implements Serializable {
         this.weights = Matrix.randomMatrix(this.inputSize, this.outputSize, range);
     }
 
-    public Matrix feedForward(Matrix inputData)
+    @Override
+    public Matrix feedForward(Matrix input)
     {
         // Order of multiply is due to choosing layers to be row vectors
         // Instead of col vectors
-        Matrix out = Matrix.add(Matrix.multiply(inputData, weights), biases);
+        Matrix out = Matrix.add(Matrix.multiply(input, weights), biases);
 
         if (activation == 0) {
             // relu
@@ -136,5 +132,4 @@ public class DenseLayer implements Serializable {
     public int getActivation() {
         return activation;
     }
-
 }
