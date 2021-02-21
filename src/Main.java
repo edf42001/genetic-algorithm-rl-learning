@@ -2,22 +2,25 @@ import genetics.Population;
 import network.math.Matrix;
 import network.Network;
 import network.layers.DenseLayer;
+import network.math.MyRand;
 
 public class Main {
 
     public static void main(String[] args) {
-        Population pop = new Population(1);
-        Network member = pop.getMember(0);
+//        Population pop = new Population(1);
+//        Network member = pop.getMember(0);
+//
+//        System.out.println(member.getLayer(0).getBiases());
+//        System.out.println(member.getLayer(1).getBiases());
+//        System.out.println(member.getLayer(2).getBiases());
+//
+//        pop.mutate(member);
+//        System.out.println("After mutation");
+//        System.out.println(member.getLayer(0).getBiases());
+//        System.out.println(member.getLayer(1).getBiases());
+//        System.out.println(member.getLayer(2).getBiases());
 
-        System.out.println(member.getLayer(0).getBiases());
-        System.out.println(member.getLayer(1).getBiases());
-        System.out.println(member.getLayer(2).getBiases());
-
-        pop.mutate(member);
-        System.out.println("After mutation");
-        System.out.println(member.getLayer(0).getBiases());
-        System.out.println(member.getLayer(1).getBiases());
-        System.out.println(member.getLayer(2).getBiases());
+        testMatrix();
     }
 
     public static void testSavingToFIle()
@@ -50,8 +53,7 @@ public class Main {
         System.out.println(layer2.getWeights());
         System.out.println(layer2.getBiases());
 
-        Matrix input = new Matrix(1, 3);
-        input.setData(new float[][] {{1, 2, 3}});
+        Matrix input = new Matrix(new float[][] {{1, 2, 3}});
 
         Matrix output = layer.feedForward(input);
         System.out.println(output);
@@ -62,16 +64,22 @@ public class Main {
 
     public static void testMatrix()
     {
-        Matrix a = new Matrix(2, 2);
-        Matrix b = new Matrix(2, 2);
-
-        a.setData(new float[][] {{1 , 2}});
-        b.setData(new float[][] {{-1, 0}, {1, 2}});
+        Matrix a = new Matrix(new float[][] {{1 , 2}, {1, 2}});
+        Matrix b = new Matrix(new float[][] {{-1, 0}, {1, 2}});
 
         System.out.println(a);
         System.out.println(b);
-//        System.out.println(network.math.Matrix.add(a, b));
-        System.out.println(Matrix.multiply(a, b));
-//        System.out.println(network.math.Matrix.randomMatrix(2, 2));
+        System.out.println(a.dot(b));
+
+        System.out.println(a.dot(b).add(3));
+
+        System.out.println(a.multiply(0.5f));
+        System.out.println(b.multiply(0.5f));
+
+        System.out.println(a.multiply(0.5f).add(b.multiply(0.5f)));
+
+
+//        MyRand.initialize();
+//        System.out.println(Msatrix.randomUniform(2, 2, 0.5f));
     }
 }

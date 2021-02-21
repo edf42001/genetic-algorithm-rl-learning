@@ -9,6 +9,7 @@ import edu.cwru.sepia.environment.model.state.UnitTemplate.UnitTemplateView;
 import edu.cwru.sepia.util.Direction;
 import genetics.Population;
 import network.math.Matrix;
+import network.math.MyRand;
 
 import java.io.*;
 import java.util.Arrays;
@@ -35,6 +36,9 @@ public class MyCombatAgent extends Agent {
     public MyCombatAgent(int player, String[] args) {
         super(player);
 
+        // Initialize random number generator with no seed
+        MyRand.initialize();
+
         // Read enemyPlayerNum from args
         if(args.length > 0)
         {
@@ -43,7 +47,7 @@ public class MyCombatAgent extends Agent {
 
         // Load if watching replay, else make random
         if (watchReplay) {
-            this.population = Population.loadPopulation(String.format("saved_data/populations/p%d/population_%d.ser", playernum, 360));
+            this.population = Population.loadPopulation(String.format("saved_data/populations/p%d/population_%d.ser", playernum, 250));
         } else {
             this.population = new Population(80);
         }
@@ -269,8 +273,7 @@ public class MyCombatAgent extends Agent {
             data[0][10 + i] = memory[i];
         }
         // Create matrix with input data
-        Matrix inputData = new Matrix(1, data.length);
-        inputData.setData(data);
+        Matrix inputData = new Matrix(data);
 
         return inputData;
     }

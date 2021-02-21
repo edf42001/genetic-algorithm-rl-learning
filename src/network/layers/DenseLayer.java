@@ -31,21 +31,21 @@ public class DenseLayer extends Layer {
         this.weights = weights;
         this.biases = biases;
 
-        this.inputSize = weights.getData().length;
-        this.outputSize = weights.getData()[0].length;
+        this.inputSize = weights.getRows();
+        this.outputSize = weights.getCols();
 
         this.activation = activation;
     }
 
     public void randomizeBiases() {
         // Just set these to uniformly distributed in [-0.5, 0.5]
-        this.biases = Matrix.randomMatrix(1, this.outputSize, 0.5f);
+        this.biases = Matrix.randomUniform(1, this.outputSize, 0.5f);
     }
 
     public void randomizeWeights() {
         // This range value is called the glorot_uniform initialization
         float range = (float) Math.sqrt(6.0 / (this.inputSize + this.outputSize));
-        this.weights = Matrix.randomMatrix(this.inputSize, this.outputSize, range);
+        this.weights = Matrix.randomUniform(this.inputSize, this.outputSize, range);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class DenseLayer extends Layer {
     {
         // Order of multiply is due to choosing layers to be row vectors
         // Instead of col vectors
-        Matrix out = Matrix.add(Matrix.multiply(input, weights), biases);
+        Matrix out = input.dot(weights).add(biases);
 
         if (activation == 0) {
             // relu
@@ -75,7 +75,7 @@ public class DenseLayer extends Layer {
     {
         float[][] data = a.getData();
 
-        // Apply rele function to a matrix
+        // Apply relu function to a matrix
         // This assumes the matrix is a row matrix
         for (int i = 0; i < data[0].length; i++)
         {

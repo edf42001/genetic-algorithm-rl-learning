@@ -7,6 +7,7 @@ import edu.cwru.sepia.environment.model.state.Unit;
 import network.math.Matrix;
 import network.Network;
 import network.layers.DenseLayer;
+import network.math.MyRand;
 
 import java.io.*;
 import java.util.List;
@@ -49,7 +50,7 @@ public class Population implements Serializable {
             // TODO network.Network features are hardcoded in the population class? That's weird
             // Create random population
             Network network = new Network(3); // 3 Memory neurons
-            network.addLayer(new DenseLayer(10, 16, "relu"));
+            network.addLayer(new DenseLayer(13, 16, "relu"));
             network.addLayer(new DenseLayer(16, 16, "relu"));
             network.addLayer(new DenseLayer(16, 11, "sigmoid"));
             population[i] = network;
@@ -126,8 +127,8 @@ public class Population implements Serializable {
 
         for (int i = numElite; i < numElite + numRandom; i++) {
             // Choose parents based on fitness randomly
-            int index1 = random.nextInt(populationSize);
-            int index2 = random.nextInt(populationSize);
+            int index1 = MyRand.randInt(populationSize);
+            int index2 = MyRand.randInt(populationSize);
             Network parent1 = population[index1];
             Network parent2 = population[index2];
 
@@ -160,7 +161,7 @@ public class Population implements Serializable {
     public int randomWeightedIndex(int[] cumulative)
     {
         // Max value is the total value (last value of cumulative)
-        int randValue = random.nextInt(cumulative[cumulative.length-1]);
+        int randValue = MyRand.randInt(cumulative[cumulative.length-1]);
         for (int i = 0; i < cumulative.length; i++) {
             if (randValue < cumulative[i]) {
                 return i;
@@ -184,11 +185,9 @@ public class Population implements Serializable {
             Matrix bWeights = layerB.getWeights();
             Matrix bBiases = layerB.getBiases();
 
-            float ratio = random.nextFloat();
-            Matrix newWeights = Matrix.add(Matrix.multiply(ratio, aWeights),
-                                            Matrix.multiply(1 - ratio, bWeights));
-            Matrix newBiases = Matrix.add(Matrix.multiply(ratio, aBiases),
-                    Matrix.multiply(1 - ratio, bBiases));
+            float ratio = MyRand.randFloat();
+            Matrix newWeights = aWeights.multiply(ratio).add(bWeights.multiply(1 - ratio));
+            Matrix newBiases = aBiases.multiply(ratio).add(bBiases.multiply(1 - ratio));
 
             DenseLayer childLayer = new DenseLayer(newWeights, newBiases, layerA.getActivation());
             child.addLayer(childLayer);
@@ -211,16 +210,16 @@ public class Population implements Serializable {
             // Mutate weights
             for (int r = 0; r < wData.length; r++) {
                 for (int c = 0; c < wData[0].length; c++) {
-                    if (random.nextFloat() < mutationRate) {
-                        wData[r][c] += mutationStepSize * 2 * (random.nextFloat() - 0.5);
+                    if (MyRand.randFloat() < mutationRate) {
+                        wData[r][c] += mutationStepSize * 2 * (MyRand.randFloat() - 0.5);
                     }
                 }
             }
 
             // Mutate biases
             for (int c = 0; c < bData[0].length; c++) {
-                if (random.nextFloat() < mutationRate) {
-                    bData[0][c] += mutationStepSize * 2 * (random.nextFloat() - 0.5);
+                if (MyRand.randFloat() < mutationRate) {
+                    bData[0][c] += mutationStepSize * 2 * (MyRand.randFloat() - 0.5);
                 }
             }
         }
