@@ -28,7 +28,10 @@ public class MyCombatAgent extends Agent {
 
     private Population players;
 
+    private int epochsElapsed;
+
     private final boolean watchReplay = false;
+    private final int epochsToEvolve = 20;
 
     public MyCombatAgent(int player, String[] args) {
         super(player);
@@ -44,9 +47,9 @@ public class MyCombatAgent extends Agent {
 
         // Load if watching replay, else make random
         if (watchReplay) {
-            this.players = Population.loadPopulation(String.format("saved_data/populations/p%d/population_%d.ser", playernum, 250));
+            this.players = Population.loadPopulation(String.format("saved_data/populations/p%d/population_%d.ser", playernum, 200));
         } else {
-            this.players = new Population(80);
+            this.players = new Population(400);
         }
 
         System.out.println("In constructor of agents.MyCombatAgent");
@@ -64,7 +67,7 @@ public class MyCombatAgent extends Agent {
 
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {
-                System.out.println("In shutdown hook");
+                System.out.println("Executing shutdown hook");
                 try {
                     myWriter.close();
                 } catch (IOException e) {
@@ -72,6 +75,8 @@ public class MyCombatAgent extends Agent {
                 }
             }
         }, "Shutdown-thread"));
+
+        epochsElapsed = 0;
     }
 
     @Override
@@ -148,6 +153,9 @@ public class MyCombatAgent extends Agent {
             System.out.println("Epoch: " + players.getEpoch());
             System.out.println("Fitnesses: " + Arrays.toString(fitnesses));
 
+            // One epoch has passed
+            epochsElapsed += 1;
+
             // Only save new agents if not replaying
             if (!watchReplay) {
                 if (players.getEpoch() % 50 == 0)
@@ -155,6 +163,12 @@ public class MyCombatAgent extends Agent {
                     String file = String.format("saved_data/populations/p%d/population_%d.ser", playernum, players.getEpoch());
                     Population.savePopulation(file, players);
                 }
+            }
+
+            if (epochsElapsed >= epochsToEvolve)
+            {
+                System.out.println("Reached epoch " + players.getEpoch() + ", stopping");
+                System.exit(0);
             }
         }
         // Close file

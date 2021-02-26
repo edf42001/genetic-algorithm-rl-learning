@@ -27,7 +27,7 @@ public class Population implements Serializable {
 
     // Genetic evolution config
     private float mutationRate = 0.05f;
-    private float mutationStepSize = 1.0f;
+    private float mutationStepSize = 0.2f;
     private float elitePercent = 0.1f;
     private float randomPercent = 0.05f;
 

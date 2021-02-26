@@ -28,6 +28,8 @@ public class Player implements Serializable {
 
     private float color; // This player's "color" (used to see relations between players)
 
+    private int id; // Unique player id
+
     public Player() {
         // Create random brain for this player
         brain = new Network();
