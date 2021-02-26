@@ -1,0 +1,13 @@
+# IntelliJ
+**/.idea
+**/*.iml
+
+# Genetic algorithm saves and external sources
+java/enemy_agents
+java/lib
+java/out
+java/saves
+java/saved_data
+
+# Python
+**/__pycache__
