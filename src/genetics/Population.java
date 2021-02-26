@@ -149,65 +149,6 @@ public class Population implements Serializable {
     }
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    public Network crossover(Network a, Network b)
-    {
-        // TODO crossover
-        // TODO this is a dumb linear combo method
-        Network child = new Network();
-
-        for (int i = 0; i < a.getLayers().size(); i++) {
-            DenseLayer layerA = a.getLayer(i);
-            DenseLayer layerB = b.getLayer(i);
-            Matrix aWeights = layerA.getWeights();
-            Matrix aBiases = layerA.getBiases();
-            Matrix bWeights = layerB.getWeights();
-            Matrix bBiases = layerB.getBiases();
-
-            Matrix newWeights = aWeights.crossover(bWeights);
-            Matrix newBiases = aBiases.crossover(bBiases);
-
-//            float ratio = MyRand.randFloat();
-//            Matrix newWeights = aWeights.multiply(ratio).add(bWeights.multiply(1 - ratio));
-//            Matrix newBiases = aBiases.multiply(ratio).add(bBiases.multiply(1 - ratio));
-
-            DenseLayer childLayer = new DenseLayer(newWeights, newBiases, layerA.getActivation());
-            child.addLayer(childLayer);
-
-        }
-
-        return child;
-    }
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    public void mutate(Network network)
-    {
-        // TODO crossover
-        for (DenseLayer layer : network.getLayers()) {
-            float[][] wData = layer.getWeights().getData();
-            float[][] bData = layer.getBiases().getData();
-
-            // TODO more effecient mutaiton method?
-            // Maybe choose number of mutations
-
-            // Mutate weights
-            for (int r = 0; r < wData.length; r++) {
-                for (int c = 0; c < wData[0].length; c++) {
-                    if (MyRand.randFloat() < mutationRate) {
-                        wData[r][c] += mutationStepSize * 2 * (MyRand.randFloat() - 0.5);
-                    }
-                }
-            }
-
-            // Mutate biases
-            for (int c = 0; c < bData[0].length; c++) {
-                if (MyRand.randFloat() < mutationRate) {
-                    bData[0][c] += mutationStepSize * 2 * (MyRand.randFloat() - 0.5);
-                }
-            }
-        }
-    }
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------
-
     public int getEpoch() {
         return epoch;
     }

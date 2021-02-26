@@ -3,31 +3,18 @@ package network;
 import java.io.*;
 import java.util.ArrayList;
 
-import network.layers.DenseLayer;
 import network.layers.Layer;
 import network.math.Matrix;
 
 public class Network implements Serializable {
-    private ArrayList<DenseLayer> layers;
-
-    // Store the last N outputs of network as memory
-    // To be fed back in
-    int nMemory;
-    float[] memory;
-
-    public Network(int nMemory)
-    {
-        this.layers = new ArrayList<DenseLayer>(4);
-        this.nMemory = nMemory;
-        memory = new float[nMemory];
-    }
+    private ArrayList<Layer> layers;
 
     public Network()
     {
-        this(0);
+        this.layers = new ArrayList<Layer>(4);
     }
 
-    public void addLayer(DenseLayer layer)
+    public void addLayer(Layer layer)
     {
         layers.add(layer);
     }
@@ -37,15 +24,9 @@ public class Network implements Serializable {
         // Propagate the input through the network
 
         Matrix next = inputData;
-        for (DenseLayer layer : layers)
+        for (Layer layer : layers)
         {
             next = layer.feedForward(next);
-        }
-
-        // Store N memories
-        for (int i = 0; i < nMemory; i++)
-        {
-            memory[i] = next.getData()[0][next.getData()[0].length - 1 - i];
         }
 
         return next;
@@ -58,21 +39,13 @@ public class Network implements Serializable {
      * @return New crossed network
      */
     public Network crossover(Network other) {
-        Network child = new Network(nMemory);
+        Network child = new Network();
 
         for (int i = 0; i < this.getLayers().size(); i++) {
-            DenseLayer layerA = this.getLayer(i);
-            DenseLayer layerB = other.getLayer(i);
-            Matrix aWeights = layerA.getWeights();
-            Matrix aBiases = layerA.getBiases();
-            Matrix bWeights = layerB.getWeights();
-            Matrix bBiases = layerB.getBiases();
+            Layer layerA = this.getLayer(i);
+            Layer layerB = other.getLayer(i);
 
-            Matrix newWeights = aWeights.crossover(bWeights);
-            Matrix newBiases = aBiases.crossover(bBiases);
-
-            DenseLayer childLayer = new DenseLayer(newWeights, newBiases, layerA.getActivation());
-            child.addLayer(childLayer);
+            child.addLayer(layerA.crossover(layerB));
         }
 
         return child;
@@ -128,8 +101,8 @@ public class Network implements Serializable {
 
     public Network clone()
     {
-        Network ret = new Network(nMemory);
-        for (DenseLayer layer : this.layers)
+        Network ret = new Network();
+        for (Layer layer : this.layers)
         {
             ret.addLayer(layer.clone());
         }
@@ -137,16 +110,12 @@ public class Network implements Serializable {
     }
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    public ArrayList<DenseLayer> getLayers() {
+    public ArrayList<Layer> getLayers() {
         return layers;
     }
 
-    public DenseLayer getLayer(int index)
+    public Layer getLayer(int index)
     {
         return layers.get(index);
-    }
-
-    public float[] getMemory() {
-        return memory;
     }
 }

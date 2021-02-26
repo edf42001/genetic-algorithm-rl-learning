@@ -1,5 +1,7 @@
 package network.layers;
 
+import network.Network;
+import network.math.Activations;
 import network.math.Matrix;
 
 /***
@@ -23,7 +25,7 @@ public class DenseLayer extends Layer {
 
         // Set activation types as ints for
         // faster comparison
-        this.activation = stringToActivation(activation);
+        this.activation = Activations.stringToActivation(activation);
 
     }
 
@@ -54,20 +56,7 @@ public class DenseLayer extends Layer {
         // Order of multiply is due to choosing layers to be row vectors
         // Instead of col vectors
         Matrix out = input.dot(weights).add(biases);
-
-        if (activation == 0) {
-            // relu
-            return DenseLayer.relu(out);
-        }
-        else if (activation == 1) {
-            // sigmoid
-            return DenseLayer.sigmoid(out);
-        }
-        else if (activation == 2) {
-            // none
-            return out;
-        }
-        System.err.println("Error: Unknown activation " + activation);
+        Activations.applyActivation(out, this.activation);
         return out;
     }
 
@@ -77,50 +66,15 @@ public class DenseLayer extends Layer {
         biases.mutate(mutationRate, mutationSize);
     }
 
-    public static Matrix relu(Matrix a)
-    {
-        float[][] data = a.getData();
+    @Override
+    public Layer crossover(Layer other) {
+        DenseLayer denseLayer = (DenseLayer) other;
+        Matrix newWeights = weights.crossover(denseLayer.weights);
+        Matrix newBiases = biases.crossover(denseLayer.biases);
 
-        // Apply relu function to a matrix
-        // This assumes the matrix is a row matrix
-        for (int i = 0; i < data[0].length; i++)
-        {
-            if (data[0][i] < 0) {
-                data[0][i] = 0;
-            }
-        }
-
-        return a;
+        return new DenseLayer(newWeights, newBiases, activation);
     }
 
-    public static Matrix sigmoid(Matrix a)
-    {
-        float[][] data = a.getData();
-
-        // Apply rele function to a matrix
-        // This assumes the matrix is a row matrix
-        for (int i = 0; i < data[0].length; i++)
-        {
-            data[0][i] = (float) (1.0 / (1.0 + Math.exp(-data[0][i])));
-        }
-
-        return a;
-    }
-
-    public int stringToActivation(String activation)
-    {
-        switch (activation) {
-            case "relu":
-                return 0;
-            case "sigmoid":
-                return 1;
-            case "none":
-                return 2;
-            default:
-                System.err.println("Error: Unknown activation " + activation);
-                return -1;
-        }
-    }
 
     public DenseLayer clone()
     {

@@ -29,4 +29,12 @@ public abstract class Layer implements Serializable {
     }
 
     public abstract void mutate(float mutationRate, float mutationSize);
+
+    public abstract Layer crossover(Layer other);
+
+    public abstract Layer clone();
+
+    public abstract Matrix getWeights();
+
+    public abstract Matrix getBiases();
 }

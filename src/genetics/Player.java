@@ -9,11 +9,12 @@ import edu.cwru.sepia.environment.model.state.UnitTemplate;
 import edu.cwru.sepia.util.Direction;
 import network.Network;
 import network.layers.DenseLayer;
+import network.layers.LSTMLayer;
+import network.layers.RecurrentLayer;
 import network.math.Matrix;
 import network.math.MyRand;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -27,14 +28,12 @@ public class Player implements Serializable {
 
     private float color; // This player's "color" (used to see relations between players)
 
-    float[] memory;
-
     public Player() {
         // Create random brain for this player
-        brain = new Network(3); // 3 Memory neurons
-        brain.addLayer(new DenseLayer(13, 16, "relu"));
-        brain.addLayer(new DenseLayer(16, 16, "relu"));
-        brain.addLayer(new DenseLayer(16, 11, "sigmoid"));
+        brain = new Network();
+        brain.addLayer(new RecurrentLayer(10, 16));
+        brain.addLayer(new RecurrentLayer(16, 16));
+        brain.addLayer(new DenseLayer(16, 8, "sigmoid"));
     }
 
     public Player(Network brain) {
@@ -57,7 +56,7 @@ public class Player implements Serializable {
         // Then same for each enemy unit
         // Then 3 memory inputs from last time step
         // 1 + 3 * 1 + 3 * 2 + 3 = 13
-        float[][] data = new float[1][13];
+        float[][] data = new float[1][10];
 
         // Where this unit is. network.Network sees other units relative to itself
         Unit.UnitView thisUnit = state.getUnit(unitID);
@@ -85,18 +84,17 @@ public class Player implements Serializable {
 
                 // Fill in inputs in right place
                 if (unitX - myX == 0) {
-                    data[0][3 * iUnit + 1] = 0.0f;
-
+                    data[0][3 * iUnit + 1] = 0;
                 } else {
                     data[0][3 * iUnit + 1] = 3.0f / (unitX - myX);
                 }
 
                 if (unitY - myY == 0) {
-                    data[0][3 * iUnit + 2] = 0.0f;
+                    data[0][3 * iUnit + 2] = 0;
                 } else {
                     data[0][3 * iUnit + 2] = 3.0f / (unitY - myY);
-
                 }
+
                 data[0][3 * iUnit + 3] = unitHealth;
 
                 iUnit++; // Next unit
@@ -130,16 +128,8 @@ public class Player implements Serializable {
 //                    unitName, unitHealth, unitX, unitY, unitRange, unitDamage);
         }
 
-        for (int i = 0; i < 3; i++)
-        {
-//            System.out.println(brain.getMemory());
-            data[0][10 + i] = brain.getMemory()[i];
-        }
-
         // Create matrix with input data
-        Matrix inputData = new Matrix(data);
-
-        return inputData;
+        return new Matrix(data);
     }
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -172,20 +162,19 @@ public class Player implements Serializable {
             Direction dir = Direction.EAST; // Default value so it compiles
             switch (maxIndex) {
                 case 0:
-                    dir = Direction.NORTHEAST;
+//                    dir = Direction.NORTHEAST;
                     dir = Direction.NORTH;
                     break;
                 case 1:
-                    dir = Direction.SOUTHEAST;
+//                    dir = Direction.SOUTHEAST;
                     dir = Direction.SOUTH;
                     break;
                 case 2:
-                    dir = Direction.SOUTHWEST;
+//                    dir = Direction.SOUTHWEST;
                     dir = Direction.EAST;
-
                     break;
                 case 3:
-                    dir = Direction.NORTHWEST;
+//                    dir = Direction.NORTHWEST;
                     dir = Direction.WEST;
                     break;
                 default:
@@ -227,18 +216,16 @@ public class Player implements Serializable {
         // Choose so inputs are in rance (-1, 1)
         // These are: delX, delY, health for each unit
         float[] means = {0, 0, 25};
-        float[] stds = {1, 1, 25};
+        float[] stds = {1, 1, 12};
         int nDataPerUnit = means.length;
 
         // Get reference to data
         float[] data = inputData.getData()[0];
-
-        // Don't standardize three memory ones
-        for (int i = 0; i < data.length - 3; i++) {
+        for (int i = 0; i < data.length; i++) {
             // Index determines what type of data we are normalizing
             // We start with health for our unit, so it needs to be offset
             int index = (i + 2) % nDataPerUnit;
-            // Standardize: todo: use multiplication not division for speed
+            // Standardize:
             data[i] = (data[i] - means[index]) / stds[index];
         }
     }
@@ -316,6 +303,12 @@ public class Player implements Serializable {
      */
     public void terminalFitnessUpdate(State.StateView state, History.HistoryView history,
                                       List<Integer> myUnitIDs, List<Integer> enemyUnitIDs) {
+
+
+        int enemyKilledWeight = 5000;
+        int meKilledWeight = 0;
+        fitness += (2 - enemyUnitIDs.size()) * enemyKilledWeight;
+        fitness += (2 - myUnitIDs.size()) * meKilledWeight;
 
         // Make sure all fitnesses are at least non-0
         if (fitness <= 0) {

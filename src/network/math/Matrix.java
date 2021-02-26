@@ -131,6 +131,20 @@ public class Matrix implements Serializable {
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
+    // Subtracts this matrix from a scalar
+    public Matrix subtractFrom(float n) {
+        Matrix newMatrix = new Matrix(rows, cols);
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                newMatrix.data[i][j] = n - data[i][j];
+            }
+        }
+
+        return newMatrix;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
     //return a matrix which is this matrix - parameter matrix
     public Matrix subtract(Matrix n) {
         Matrix newMatrix = new Matrix(cols, rows);
@@ -146,7 +160,7 @@ public class Matrix implements Serializable {
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
     //return a matrix which is this matrix * parameter matrix (element wise multiplication)
-    public Matrix multiply(Matrix n) {
+    public Matrix pointwiseMultiply(Matrix n) {
         Matrix newMatrix = new Matrix(rows, cols);
 
         if (cols == n.cols && rows == n.rows) {
@@ -170,6 +184,22 @@ public class Matrix implements Serializable {
             }
         }
         return n;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
+    // Concatenates two 1 x N row matrices together
+    public Matrix concatenateRow(Matrix n) {
+        Matrix newMatrix = new Matrix(1, cols + n.cols);
+
+        for (int i = 0; i < cols; i++) {
+            newMatrix.data[0][i] = data[0][i];
+        }
+
+        for (int i = cols; i < cols + n.cols; i++) {
+            newMatrix.data[0][i] = n.data[0][i - cols];
+        }
+
+        return newMatrix;
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -216,22 +246,6 @@ public class Matrix implements Serializable {
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
-    //applies the activation function(sigmoid) to each element of the matrix
-    public Matrix activate() {
-        Matrix n = new Matrix(rows, cols);
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                n.data[i][j] = sigmoid(data[i][j]);
-            }
-        }
-        return n;
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------
-    //sigmoid activation function
-    float sigmoid(float x) {
-        return (float) (1.0 / (1 + Math.exp(-x)));
-    }
 
     //returns the matrix that is the derived sigmoid function of the current matrix
     public Matrix sigmoidDerived() {
@@ -344,147 +358,3 @@ public class Matrix implements Serializable {
         return ret;
     }
 }
-//
-//public class Matrix implements Serializable {
-//    public static Random random = new Random();
-//
-//    private float[][] data;
-//
-//    public Matrix(int rows, int cols){
-//        this.data = new float[rows][cols];
-//    }
-//
-//    public Matrix(float[][] data)
-//    {
-//        this.data = data;
-//    }
-//
-//    public void setData(float[][] data)
-//    {
-//        this.data = data.clone();
-//        //TODO test pass by value
-//    }
-//
-//    public static Matrix add(Matrix a, Matrix b)
-//    {
-//        int rows = a.data.length;
-//        int cols = a.data[0].length;
-//
-//        float[][] sum = new float[rows][cols];
-//
-//        for (int r = 0; r < rows; r++) {
-//            for (int c = 0; c < cols; c++) {
-//                sum[r][c] = a.data[r][c] + b.data[r][c];
-//            }
-//        }
-//
-//        return new Matrix(sum);
-//    }
-//
-//    public static Matrix subtract(Matrix a, Matrix b)
-//    {
-//        int rows = a.data.length;
-//        int cols = a.data[0].length;
-//
-//        float[][] sum = new float[rows][cols];
-//
-//        for (int r = 0; r < rows; r++) {
-//            for (int c = 0; c < cols; c++) {
-//                sum[r][c] = a.data[r][c] - b.data[r][c];
-//            }
-//        }
-//
-//        return new Matrix(sum);
-//    }
-//
-//    public static Matrix multiply(Matrix a, Matrix b)
-//    {
-//        int rows1 = a.data.length;
-//        int cols2 = b.data[0].length;
-//        int rows2 = b.data.length;
-//
-//        float[][] ret = new float[rows1][cols2];
-//
-//        for (int r = 0; r < rows1; r++) {
-//            for (int c = 0; c < cols2; c++) {
-//                for (int k = 0; k < rows2; k++) {
-//                    ret[r][c] += a.data[r][k] * b.data[k][c];
-//                }
-//            }
-//        }
-//
-//        return new Matrix(ret);
-//    }
-//
-//    public static Matrix multiply(float a, Matrix b)
-//    {
-//        int rows = b.data.length;
-//        int cols = b.data[0].length;
-//
-//        float[][] ret = new float[rows][cols];
-//
-//        for (int r = 0; r < rows; r++) {
-//            for (int c = 0; c < cols; c++) {
-//                ret[r][c] = a * b.data[r][c];
-//            }
-//        }
-//
-//        return new Matrix(ret);
-//    }
-//    /**
-//     * Return a matrix with uniformly distributed
-//     * random values in each entry
-//     * @param rows Rows
-//     * @param cols Cols
-//     * @param range Values will be in [-range, range]
-//     * @return
-//     */
-//    public static Matrix randomMatrix(int rows, int cols, float range)
-//    {
-//        float[][] ret = new float[rows][cols];
-//
-//        for (int r = 0; r < rows; r++) {
-//            for (int c = 0; c < cols; c++) {
-//                ret[r][c] = 2 * range * (MyRand.randFloat() - 0.5f);
-//            }
-//        }
-//
-//        return new Matrix(ret);
-//    }
-//
-//    public static Matrix randomMatrix(int rows, int cols)
-//    {
-//        return Matrix.randomMatrix(rows, cols, 1);
-//    }
-//
-//    public String toString()
-//    {
-//        String ret = "";
-//
-//        int rows = data.length;
-//        int cols = data[0].length;
-//
-//        for (int r = 0; r < rows; r++) {
-//            for (int c = 0; c < cols; c++) {
-//                ret += String.format("%.2f", data[r][c]);
-//                if (c != cols - 1) {
-//                    ret += " ";
-//                }
-//            }
-//            ret += "\n";
-//        }
-//
-//        return ret;
-//    }
-//
-//    public Matrix clone()
-//    {
-//        // Start size determined by data and doesn't matter
-//        Matrix ret = new Matrix(0,0);
-//        ret.data = data.clone();
-//        return ret;
-//    }
-//
-//    public float[][] getData() { return this.data; }
-//
-//}

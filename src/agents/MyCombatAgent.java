@@ -28,7 +28,7 @@ public class MyCombatAgent extends Agent {
 
     private Population players;
 
-    private final boolean watchReplay = true;
+    private final boolean watchReplay = false;
 
     public MyCombatAgent(int player, String[] args) {
         super(player);
@@ -130,7 +130,8 @@ public class MyCombatAgent extends Agent {
 
     @Override
     public void terminalStep(State.StateView state, History.HistoryView history) {
-//        System.out.println("In agent terminal step");
+        myUnitIDs = state.getUnitIds(playernum);
+        enemyUnitIDs = state.getUnitIds(enemyPlayerNum);
         players.getCurrentPlayer().terminalFitnessUpdate(state, history, myUnitIDs, enemyUnitIDs);
 
         // Need to store to print because they get rest in moveToNextMember upon new epoch
