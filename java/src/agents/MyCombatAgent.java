@@ -30,8 +30,8 @@ public class MyCombatAgent extends Agent {
 
     private int epochsElapsed;
 
-    private final boolean watchReplay = false;
-    private final int epochsToEvolve = 20;
+    private final boolean watchReplay = true;
+    private final int epochsToEvolve = 400;
 
     public MyCombatAgent(int player, String[] args) {
         super(player);
@@ -47,7 +47,7 @@ public class MyCombatAgent extends Agent {
 
         // Load if watching replay, else make random
         if (watchReplay) {
-            this.players = Population.loadPopulation(String.format("saved_data/populations/p%d/population_%d.ser", playernum, 200));
+            this.players = Population.loadPopulation(String.format("saved_data/populations/p%d/population_%d.ser", playernum, 400));
         } else {
             this.players = new Population(400);
         }

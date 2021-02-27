@@ -202,7 +202,7 @@ public class Player implements Serializable {
             // Look up the enemy id the network wanted to attack
             Integer enemyID = enemyUnitIDs.get(maxIndex);
             // TODO commented out for testing
-//            actions.put(unitID, Action.createPrimitiveAttack(unitID, enemyID));
+            actions.put(unitID, Action.createPrimitiveAttack(unitID, enemyID));
         }
     }
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -249,8 +249,8 @@ public class Player implements Serializable {
         // And will overwhelm the danger bonus, so agents can ignore that
         // If fitness is 0 set it to 1 so the math doesn't break
 
-        int dangerWeight = 1;
-        int damageWeight = 20;
+        int dangerWeight = 10;
+        int damageWeight = 40;
         int enemyDamageWeight = 0;
         int dangerDistance = 10;
 
@@ -270,7 +270,7 @@ public class Player implements Serializable {
                 int enemyUnitX = enemyUnit.getXPosition();
                 int enemyUnitY = enemyUnit.getYPosition();
                 if (Math.max(Math.abs(enemyUnitX - unitX), Math.abs(enemyUnitY - unitY)) <= dangerDistance) {
-                    fitness += 10 * 1.0 / Math.max(Math.abs(enemyUnitX - unitX), Math.abs(enemyUnitY - unitY));
+                    fitness += dangerWeight * 1.0f / Math.max(Math.abs(enemyUnitX - unitX), Math.abs(enemyUnitY - unitY));
 //                    fitness += dangerWeight;
                     break; // Only one point per unit (not for each enemy)
                 }
@@ -307,7 +307,7 @@ public class Player implements Serializable {
                                       List<Integer> myUnitIDs, List<Integer> enemyUnitIDs) {
 
 
-        int enemyKilledWeight = 5000;
+        int enemyKilledWeight = 10000;
         int meKilledWeight = 0;
         fitness += (2 - enemyUnitIDs.size()) * enemyKilledWeight;
         fitness += (2 - myUnitIDs.size()) * meKilledWeight;
