@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option java_package = "protos.generated";
+
 // The greeting service definition.
 service Greeter {
   // Sends a greeting
