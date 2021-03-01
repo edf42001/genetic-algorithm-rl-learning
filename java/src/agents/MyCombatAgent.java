@@ -30,7 +30,7 @@ public class MyCombatAgent extends Agent {
 
     private int epochsElapsed;
 
-    private final boolean watchReplay = true;
+    private final boolean watchReplay = false;
     private final int epochsToEvolve = 400;
 
     public MyCombatAgent(int player, String[] args) {
@@ -118,7 +118,7 @@ public class MyCombatAgent extends Agent {
             Matrix inputData = players.getCurrentPlayer().observeEnvironment(state, unitID, myUnitIDs, enemyUnitIDs);
             players.getCurrentPlayer().standardizeInputData(inputData);
             Matrix output = players.getActions(inputData);
-            players.getCurrentPlayer().convertOutputToActions(output.getData()[0], actions, unitID, enemyUnitIDs);
+            players.getCurrentPlayer().convertOutputToActions(state, output.getData()[0], actions, unitID, enemyUnitIDs);
 //            System.out.print("Input data: " + inputData);
 //            System.out.print("network.Network result: " + output);
         }

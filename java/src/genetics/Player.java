@@ -136,13 +136,39 @@ public class Player implements Serializable {
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /**
+     * Converts input data values to the range [-1, 1]
+     * Using hardcoded ranges
+     *
+     * @param inputData The unstandardized data. Is modified in place
+     */
+    public void standardizeInputData(Matrix inputData) {
+        // Hardcoded mean and std dev values
+        // Choose so inputs are in rance (-1, 1)
+        // These are: delX, delY, health for each unit
+        float[] means = {0, 0, 25};
+        float[] stds = {1, 1, 12};
+        int nDataPerUnit = means.length;
+
+        // Get reference to data
+        float[] data = inputData.getData()[0];
+        for (int i = 0; i < data.length; i++) {
+            // Index determines what type of data we are normalizing
+            // We start with health for our unit, so it needs to be offset
+            int index = (i + 2) % nDataPerUnit;
+            // Standardize:
+            data[i] = (data[i] - means[index]) / stds[index];
+        }
+    }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    /**
      * Interprets the outputs of the neural network to different
      * actions and puts them in the actions object.
      *
      * @param data    output of network, in 1D array form
      * @param actions Resulting actions get put here
      */
-    public void convertOutputToActions(float[] data, Map<Integer, Action> actions,
+    public void convertOutputToActions(State.StateView state, float[] data, Map<Integer, Action> actions,
                                        Integer unitID, List<Integer> enemyUnitIDs) {
         // each network provides 8 output action slots:
         // move NE, SE, SW, NW, Attack, 3 slots for which unit to attack
@@ -151,7 +177,12 @@ public class Player implements Serializable {
         // Take max, or no action if none > 0
         int maxIndex = -1;
         float maxValue = -1;
-        for (int j = 0; j < 5; j++) {
+
+        // If there are no enemies in range, do not allow an attack.
+        // Only look at the move outputs so the unit will not be stuck attacking
+        // When it could move
+        int outputsToCheck = enemyInRange(state, unitID, enemyUnitIDs, 1) ? 4 : 5;
+        for (int j = 0; j < outputsToCheck; j++) {
             if (data[j] > 0.5 && data[j] > maxValue) {
                 maxIndex = j;
                 maxValue = data[j];
@@ -201,34 +232,7 @@ public class Player implements Serializable {
 
             // Look up the enemy id the network wanted to attack
             Integer enemyID = enemyUnitIDs.get(maxIndex);
-            // TODO commented out for testing
             actions.put(unitID, Action.createPrimitiveAttack(unitID, enemyID));
-        }
-    }
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /**
-     * Converts input data values to the range [-1, 1]
-     * Using hardcoded ranges
-     *
-     * @param inputData The unstandardized data. Is modified in place
-     */
-    public void standardizeInputData(Matrix inputData) {
-        // Hardcoded mean and std dev values
-        // Choose so inputs are in rance (-1, 1)
-        // These are: delX, delY, health for each unit
-        float[] means = {0, 0, 25};
-        float[] stds = {1, 1, 12};
-        int nDataPerUnit = means.length;
-
-        // Get reference to data
-        float[] data = inputData.getData()[0];
-        for (int i = 0; i < data.length; i++) {
-            // Index determines what type of data we are normalizing
-            // We start with health for our unit, so it needs to be offset
-            int index = (i + 2) % nDataPerUnit;
-            // Standardize:
-            data[i] = (data[i] - means[index]) / stds[index];
         }
     }
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -250,9 +254,10 @@ public class Player implements Serializable {
         // If fitness is 0 set it to 1 so the math doesn't break
 
         int dangerWeight = 10;
-        int damageWeight = 40;
-        int enemyDamageWeight = 0;
         int dangerDistance = 10;
+
+        int damageWeight = 20;
+        int enemyDamageWeight = 0;
 
         int turnNum = state.getTurnNumber();
 
@@ -307,7 +312,7 @@ public class Player implements Serializable {
                                       List<Integer> myUnitIDs, List<Integer> enemyUnitIDs) {
 
 
-        int enemyKilledWeight = 10000;
+        int enemyKilledWeight = 5000;
         int meKilledWeight = 0;
         fitness += (2 - enemyUnitIDs.size()) * enemyKilledWeight;
         fitness += (2 - myUnitIDs.size()) * meKilledWeight;
@@ -318,6 +323,29 @@ public class Player implements Serializable {
         }
     }
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    public boolean enemyInRange(State.StateView state, Integer unitID, List<Integer> enemyIDs, int range)
+    {
+
+        // Collect data on unit
+        Unit.UnitView unit = state.getUnit(unitID);
+        int unitX = unit.getXPosition();
+        int unitY = unit.getYPosition();
+
+        for (Integer enemyID : enemyIDs)
+        {
+            Unit.UnitView enemy = state.getUnit(enemyID);
+            int enemyX = enemy.getXPosition();
+            int enemyY = enemy.getYPosition();
+
+            if (Math.max(Math.abs(unitX - enemyX), Math.abs(unitY - enemyY)) <= range)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /**
      * Uses the brain to decide upon actions
