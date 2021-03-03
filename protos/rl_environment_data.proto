@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option java_package = "protos";
+
+// The environment data service
+service EnvironmentService {
+  // Sends data, gets an action
+  rpc SendEnvironment (EnvironmentData) returns (ActionResponse) {}
+}
+
+// The request message, tells the agent the current environment state
+// And the last reward for their last action
+message EnvironmentData {
+  repeated int32 state = 1;
+  float lastActionReward = 2;
+}
+
+// The response message, what action the agent wants to preform
+message ActionResponse {
+  int32 action = 1;
+}
