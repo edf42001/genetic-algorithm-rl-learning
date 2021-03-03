@@ -2,9 +2,11 @@ package network;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import network.layers.Layer;
 import network.math.Matrix;
+import network.math.MyRand;
 
 public class Network implements Serializable {
     private ArrayList<Layer> layers;
@@ -33,19 +35,76 @@ public class Network implements Serializable {
     }
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
+//    /**
+//     * Crosses over two networks
+//     * @param other The other network this is being crossed with
+//     * @return New crossed network
+//     */
+//    public Network naiveCrossover(Network other) {
+//        Network child = new Network();
+//
+//        for (int i = 0; i < this.getLayers().size(); i++) {
+//            Layer layerA = this.getLayer(i);
+//            Layer layerB = other.getLayer(i);
+//
+//            child.addLayer(layerA.crossover(layerB));
+//        }
+//
+//        return child;
+//    }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
+
     /**
-     * Crosses over two networks
-     * @param other The other network this is being crossed with
-     * @return New crossed network
+     * @return Network parameters flattened into an array
      */
+    public float[] getChromosome()
+    {
+        float[] chromosome = new float[numParams()];
+
+        // Index to insert next layer into
+        int index = 0;
+        for (Layer l : layers)
+        {
+            l.insertIntoArray(chromosome, index);
+            index += l.numParams();
+        }
+
+        return chromosome;
+    }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
+
     public Network crossover(Network other) {
         Network child = new Network();
 
-        for (int i = 0; i < this.getLayers().size(); i++) {
-            Layer layerA = this.getLayer(i);
-            Layer layerB = other.getLayer(i);
+        // Number of values in network
+        int params = numParams();
 
-            child.addLayer(layerA.crossover(layerB));
+        // Array representation of weights and biases
+        float[] thisGenes = getChromosome();
+        float[] otherGenes = other.getChromosome();
+        float[] childGenes = new float[params];
+
+        // Random crossing point
+        int swapPoint = MyRand.randInt(params);
+
+        // Do the swap
+        for (int i = 0; i < swapPoint; i++)
+        {
+            childGenes[i] = thisGenes[i];
+        }
+
+        for(int i = swapPoint; i < params; i++)
+        {
+            childGenes[i] = otherGenes[i];
+        }
+
+        // Convert chromosome back into a network
+        int index = 0;
+        for (Layer l : this.layers) {
+            Layer newLayer = l.fromLargerArray(childGenes, index);
+
+            index += newLayer.numParams();
+            child.addLayer(newLayer);
         }
 
         return child;
@@ -59,6 +118,7 @@ public class Network implements Serializable {
         }
 
     }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /**
      * Save a network object to a file
@@ -77,6 +137,7 @@ public class Network implements Serializable {
             e.printStackTrace();
         }
     }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /**
      * Read a network object from a file
@@ -96,6 +157,17 @@ public class Network implements Serializable {
             e.printStackTrace();
             return null;
         }
+    }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    public int numParams()
+    {
+        int params = 0;
+        for (Layer l : layers)
+        {
+            params += l.numParams();
+        }
+        return params;
     }
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
 

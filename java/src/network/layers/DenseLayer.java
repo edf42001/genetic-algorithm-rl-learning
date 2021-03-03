@@ -67,14 +67,19 @@ public class DenseLayer extends Layer {
     }
 
     @Override
-    public Layer crossover(Layer other) {
-        DenseLayer denseLayer = (DenseLayer) other;
-        Matrix newWeights = weights.crossover(denseLayer.weights);
-        Matrix newBiases = biases.crossover(denseLayer.biases);
+    public void insertIntoArray(float[] arr, int index) {
+        Matrix.insertWeightsBiasesIntoArray(arr, index, weights, biases);
+    }
+
+    @Override
+    public DenseLayer fromLargerArray(float[] arr, int index) {
+        Matrix newWeights = new Matrix(weights.getRows(), weights.getCols());
+        Matrix newBiases  = new Matrix(biases.getRows(), biases.getCols());
+
+        Matrix.loadWeightsBiasesFromArray(arr, index, newWeights, newBiases);
 
         return new DenseLayer(newWeights, newBiases, activation);
     }
-
 
     public DenseLayer clone()
     {
@@ -87,6 +92,11 @@ public class DenseLayer extends Layer {
 
     public Matrix getBiases() {
         return biases;
+    }
+
+    @Override
+    public int numParams() {
+        return weights.numParams() + biases.numParams();
     }
 
     public int getActivation() {

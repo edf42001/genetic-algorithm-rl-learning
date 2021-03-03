@@ -124,19 +124,35 @@ public class LSTMLayer extends Layer {
     }
 
     @Override
-    public Layer crossover(Layer other) {
-        LSTMLayer layer = (LSTMLayer) other;
-        Matrix newForgetWeights = forgetWeights.crossover(layer.forgetWeights);
-        Matrix newForgetBiases = forgetBiases.crossover(layer.forgetBiases);
-        Matrix newUpdateWeights = updateWeights.crossover(layer.updateWeights);
-        Matrix newUpdateBiases = updateBiases.crossover(layer.updateBiases);
-        Matrix newCandidateWeights = candidateWeights.crossover(layer.candidateWeights);
-        Matrix newCandidateBiases = candidateBiases.crossover(layer.candidateBiases);
-        Matrix newOutputWeights = outputWeights.crossover(layer.outputWeights);
-        Matrix newOutputBiases = outputBiases.crossover(layer.outputBiases);
+    public void insertIntoArray(float[] arr, int index) {
+        Matrix.insertWeightsBiasesIntoArray(arr, index, forgetWeights, forgetBiases);
+        index += forgetWeights.numParams() + forgetBiases.numParams();
+        Matrix.insertWeightsBiasesIntoArray(arr, index, updateWeights, updateBiases);
+        index += updateWeights.numParams() + updateBiases.numParams();
+        Matrix.insertWeightsBiasesIntoArray(arr, index, candidateWeights, candidateBiases);
+        index += candidateWeights.numParams() + candidateBiases.numParams();
+        Matrix.insertWeightsBiasesIntoArray(arr, index, outputWeights, outputBiases);
+    }
 
-        return new LSTMLayer(newForgetWeights, newForgetBiases, newUpdateWeights, newUpdateBiases,
-                             newCandidateWeights, newCandidateBiases, newOutputWeights, newOutputBiases);
+    @Override
+    public Layer fromLargerArray(float[] arr, int index) {
+        Matrix forgetWeights = new Matrix(this.forgetWeights.getRows(), this.forgetWeights.getCols());
+        Matrix forgetBiases = new Matrix(this.forgetBiases.getRows(), this.forgetBiases.getCols());
+        Matrix updateWeights = new Matrix(this.updateWeights.getRows(), this.updateWeights.getCols());
+        Matrix updateBiases = new Matrix(this.updateBiases.getRows(), this.updateBiases.getCols());
+        Matrix candidateWeights = new Matrix(this.candidateWeights.getRows(), this.candidateWeights.getCols());
+        Matrix candidateBiases = new Matrix(this.candidateBiases.getRows(), this.candidateBiases.getCols());
+        Matrix outputWeights = new Matrix(this.outputWeights.getRows(), this.outputWeights.getCols());
+        Matrix outputBiases = new Matrix(this.outputBiases.getRows(), this.outputBiases.getCols());
+
+        Matrix.loadWeightsBiasesFromArray(arr, index, forgetWeights, forgetBiases);
+        Matrix.loadWeightsBiasesFromArray(arr, index, updateWeights, updateBiases);
+        Matrix.loadWeightsBiasesFromArray(arr, index, candidateWeights, candidateBiases);
+        Matrix.loadWeightsBiasesFromArray(arr, index, outputWeights, outputBiases);
+
+
+        return new LSTMLayer(forgetWeights, forgetBiases, updateWeights, updateBiases,
+                            candidateWeights, candidateBiases, outputWeights, outputBiases);
     }
 
     @Override
@@ -153,5 +169,11 @@ public class LSTMLayer extends Layer {
     @Override
     public Matrix getBiases() {
         return outputBiases;
+    }
+
+    @Override
+    public int numParams() {
+        return forgetWeights.numParams() + forgetBiases.numParams() + updateWeights.numParams() + updateBiases.numParams() +
+                candidateWeights.numParams() + candidateBiases.numParams() + outputWeights.numParams() + outputBiases.numParams();
     }
 }

@@ -21,18 +21,18 @@
 			<Argument>false</Argument>
 		</AgentClass>
 	</Player>
-<!--	<Player Id="1">-->
-<!--		<AgentClass>-->
-<!--			<ClassName>edu.cwru.sepia.agent.visual.VisualAgent</ClassName>-->
-<!--			<Argument>true</Argument>-->
-<!--			<Argument>false</Argument>-->
-<!--		</AgentClass>-->
-<!--	</Player>-->
+	<Player Id="1">
+		<AgentClass>
+			<ClassName>edu.cwru.sepia.agent.visual.VisualAgent</ClassName>
+			<Argument>true</Argument>
+			<Argument>false</Argument>
+		</AgentClass>
+	</Player>
 	<ModelParameters>
 		<Conquest>true</Conquest>
 		<Midas>false</Midas>
 		<ManifestDestiny>false</ManifestDestiny>
-		<TimeLimit>60</TimeLimit>
+		<TimeLimit>50</TimeLimit>
 	</ModelParameters>
 	<Runner>
 		<RunnerClass>edu.cwru.sepia.experiment.ExampleRunner</RunnerClass>

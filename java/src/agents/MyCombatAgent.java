@@ -30,8 +30,11 @@ public class MyCombatAgent extends Agent {
 
     private int epochsElapsed;
 
-    private final boolean watchReplay = false;
-    private final int epochsToEvolve = 400;
+    private long startTime;
+
+    private final boolean watchReplay = true;
+    private final int epochsToEvolve = 100;
+
 
     public MyCombatAgent(int player, String[] args) {
         super(player);
@@ -47,12 +50,13 @@ public class MyCombatAgent extends Agent {
 
         // Load if watching replay, else make random
         if (watchReplay) {
-            this.players = Population.loadPopulation(String.format("saved_data/populations/p%d/population_%d.ser", playernum, 400));
+            this.players = Population.loadPopulation(String.format("saved_data/populations/p%d/population_%d.ser", playernum, 800));
         } else {
-            this.players = new Population(400);
+            this.players = new Population(500);
         }
 
-        System.out.println("In constructor of agents.MyCombatAgent");
+        System.out.println("In constructor of MyCombatAgent");
+        System.out.println("Parameters in brain: " + players.getCurrentPlayer().getBrain().numParams());
 
         // Create files to save data
         File dataFile = new File("saved_data/netInputData.csv");
@@ -77,6 +81,7 @@ public class MyCombatAgent extends Agent {
         }, "Shutdown-thread"));
 
         epochsElapsed = 0;
+        startTime = System.currentTimeMillis();
     }
 
     @Override
@@ -168,6 +173,8 @@ public class MyCombatAgent extends Agent {
             if (epochsElapsed >= epochsToEvolve)
             {
                 System.out.println("Reached epoch " + players.getEpoch() + ", stopping");
+                long currentTime = System.currentTimeMillis();
+                System.out.printf("Time elapsed: %d\n", (currentTime - startTime) / 1000);
                 System.exit(0);
             }
         }

@@ -29,17 +29,24 @@ public class Player implements Serializable {
     private float color; // This player's "color" (used to see relations between players)
 
     private int id; // Unique player id
+    public static int nextID = 0; // Keep track of player ids
 
-    public Player() {
+    public Player(int id) {
         // Create random brain for this player
         brain = new Network();
         brain.addLayer(new RecurrentLayer(10, 16));
         brain.addLayer(new RecurrentLayer(16, 16));
         brain.addLayer(new DenseLayer(16, 8, "sigmoid"));
+
+        // Unique ID
+        this.id = Player.nextID;
+        Player.nextID += 1;
     }
 
     public Player(Network brain) {
        this.brain = brain;
+       this.id = Player.nextID;
+       Player.nextID += 1;
     }
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -312,7 +319,7 @@ public class Player implements Serializable {
                                       List<Integer> myUnitIDs, List<Integer> enemyUnitIDs) {
 
 
-        int enemyKilledWeight = 5000;
+        int enemyKilledWeight = 1000;
         int meKilledWeight = 0;
         fitness += (2 - enemyUnitIDs.size()) * enemyKilledWeight;
         fitness += (2 - myUnitIDs.size()) * meKilledWeight;
@@ -394,6 +401,7 @@ public class Player implements Serializable {
     public Player clone(){
         Player p = new Player(brain.clone());
         p.color = color;
+        p.id = id;
         return p;
     }
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -408,6 +416,10 @@ public class Player implements Serializable {
 
     public float getColor() {
         return color;
+    }
+
+    public int getID() {
+        return id;
     }
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
 

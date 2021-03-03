@@ -8,7 +8,7 @@ import java.util.Random;
  * For all random numbers
  */
 public class MyRand {
-    private static Random myRand;
+    private static Random myRand = new Random();
 
     public static void initialize(int seed){
         myRand = new Random(seed);
@@ -24,6 +24,10 @@ public class MyRand {
 
     public static float randFloat(){
         return myRand.nextFloat();
+    }
+
+    public static float randNormal() {
+        return (float) myRand.nextGaussian();
     }
 
 }

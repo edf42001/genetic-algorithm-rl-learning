@@ -6,6 +6,7 @@ import network.layers.DenseLayer;
 import network.math.MyRand;
 
 import java.io.*;
+import java.util.Arrays;
 
 /**
  * genetics.Population manager
@@ -27,7 +28,7 @@ public class Population implements Serializable {
 
     // Genetic evolution config
     private float mutationRate = 0.05f;
-    private float mutationStepSize = 0.2f;
+    private float mutationStepSize = 0.5f;
     private float elitePercent = 0.1f;
     private float randomPercent = 0.05f;
 
@@ -36,7 +37,7 @@ public class Population implements Serializable {
         this.players = new Player[populationSize];
 
         for (int i = 0; i < populationSize; i++) {
-            this.players[i] = new Player();
+            this.players[i] = new Player(0);
         }
 
         this.populationSize = populationSize;
@@ -86,11 +87,24 @@ public class Population implements Serializable {
 
         // Cumulative weights, used for roulette selection
         int[] roulette = new int[populationSize];
+        int[] fitnesses = getFitnesses();
 
         // Sort top N to select them for the next generation
         // because they are the elite
         int numElite = (int) (elitePercent * populationSize);
-        int[] topNIndices = sortTopN(roulette, numElite);
+        int[] topNIndices = sortTopN(fitnesses, numElite);
+
+        System.out.print("Best players fitness and id: ");
+        for (int i = 0; i < Math.min(numElite, 5); i++)
+        {
+            System.out.print(players[topNIndices[populationSize -1 - i]].getFitness() + " ");
+        }
+        System.out.println();
+        for (int i = 0; i < Math.min(numElite, 5); i++)
+        {
+            System.out.print(players[topNIndices[populationSize -1 - i]].getID() + " ");
+        }
+        System.out.println();
 
         // Extract the top N most fittest individuals for the next population
         for (int i = 0; i < numElite; i++)
@@ -99,9 +113,9 @@ public class Population implements Serializable {
         }
 
         // Create roulette cumulative array for random selection
-        roulette[0] = players[0].getFitness();
+        roulette[0] = fitnesses[0];
         for (int i = 1; i < populationSize; i++) {
-            roulette[i] = players[i].getFitness() + roulette[i-1];
+            roulette[i] = fitnesses[i] + roulette[i-1];
         }
 
         // Choose some amount of random parents to reproduce
@@ -228,6 +242,7 @@ public class Population implements Serializable {
                     maxIndex = j;
                 }
             }
+
             // Swap indices with values to keep track
             int tmp = data[data.length - 1 - i];
             int tmpI = indices[data.length - 1 - i];

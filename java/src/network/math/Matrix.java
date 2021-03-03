@@ -223,18 +223,6 @@ public class Matrix implements Serializable {
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
-    //returns an array which represents this matrix
-    public float[] toArray() {
-        float[] arr = new float[rows * cols];
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                arr[j + i * cols] = data[i][j];
-            }
-        }
-        return arr;
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------
     //for ix1 matrixes adds one to the bottom
     public Matrix addBias() {
         Matrix n = new Matrix(rows + 1, 1);
@@ -246,7 +234,6 @@ public class Matrix implements Serializable {
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
-
     //returns the matrix that is the derived sigmoid function of the current matrix
     public Matrix sigmoidDerived() {
         Matrix n = new Matrix(rows, cols);
@@ -299,8 +286,11 @@ public class Matrix implements Serializable {
         Matrix child = new Matrix(rows, cols);
 
         //pick a random point in the matrix
-        int randC = (int) Math.floor(MyRand.randInt(cols));
-        int randR = (int) Math.floor(MyRand.randInt(rows));
+        int randValue = MyRand.randInt(rows * cols);
+        int randR = randValue / cols; // Round down
+        int randC = randValue % cols; // Find column
+
+//        System.out.println(randValue + " " + randR + " " + randC);
 
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
@@ -313,7 +303,65 @@ public class Matrix implements Serializable {
                 }
             }
         }
+
         return child;
+    }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
+    // Combines a weights and biases matrix into a larger flat array
+    public static void insertWeightsBiasesIntoArray(float[] arr, int index, Matrix weights, Matrix biases) {
+        int increment = index;
+
+        int rows = weights.getRows();
+        int cols = weights.getCols();
+
+        // Interleaves the weights and biases
+        // One row of weights, then the associated bias
+        for (int c = 0; c < cols; c++)
+        {
+            for (int r = 0; r < rows; r++)
+            {
+                arr[increment + r] = weights.data[r][c];
+            }
+            increment += rows;
+            arr[increment] = biases.data[0][c];
+            increment += 1;
+        }
+    }
+
+    // Loads data from an interleaved weights biases array into a weights and a biases matrix
+    public static void loadWeightsBiasesFromArray(float[] arr, int index, Matrix weights, Matrix biases) {
+        int increment = index;
+
+        int rows = weights.getRows();
+        int cols = weights.getCols();
+
+        // LoInterleaves the weights and biases
+        // One row of weights, then the associated bias
+        for (int c = 0; c < cols; c++)
+        {
+            for (int r = 0; r < rows; r++)
+            {
+                weights.data[r][c] = arr[increment + r];
+            }
+            increment += rows;
+            biases.data[0][c] = arr[increment];
+            increment += 1;
+        }
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
+    // Inserts this matrix into an array
+    public static void insertIntoArray(float[] arr, int index, Matrix mat) {
+        int increment = index;
+
+        int rows = mat.getRows();
+        int cols = mat.getCols();
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                arr[increment + j] = mat.data[i][j];
+            }
+            increment += cols;
+        }
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -326,6 +374,13 @@ public class Matrix implements Serializable {
             }
         }
         return clone;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
+    // Number of values this matrix has
+    public int numParams()
+    {
+        return rows * cols;
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -10,7 +10,6 @@ public class RecurrentLayer extends Layer
 {
     private Matrix weights;
     private Matrix biases;
-    private Matrix hiddenWeights;
 
     private Matrix hiddenState;
 
@@ -22,20 +21,18 @@ public class RecurrentLayer extends Layer
 
         this.randomizeBiases();
         this.randomizeWeights();
-        this.randomizeHiddenWeights();
 
         //Initialize to all 0s
         this.hiddenState = new Matrix(1, outputSize);
     }
 
-    public RecurrentLayer(Matrix weights, Matrix biases, Matrix hiddenWeights)
+    public RecurrentLayer(Matrix weights, Matrix biases)
     {
         this.inputSize = weights.getRows();
         this.outputSize = weights.getCols();
 
         this.weights = weights;
         this.biases = biases;
-        this.hiddenWeights = hiddenWeights;
 
         //Initialize to all 0s
         this.hiddenState = new Matrix(1, outputSize);
@@ -48,21 +45,18 @@ public class RecurrentLayer extends Layer
 
     public void randomizeWeights() {
         // This range value is called the glorot_uniform initialization
-        float range = (float) Math.sqrt(6.0 / (this.inputSize + this.outputSize));
-        this.weights = Matrix.randomUniform(this.inputSize, this.outputSize, range);
-    }
-
-    public void randomizeHiddenWeights()
-    {
-        // This range value is called the glorot_uniform initialization
-        float range = (float) Math.sqrt(6.0 / (2 * this.outputSize));
-        this.hiddenWeights = Matrix.randomUniform(this.outputSize, this.outputSize, range);
+        float range = (float) Math.sqrt(6.0 / (this.inputSize + 2 * this.outputSize));
+        this.weights = Matrix.randomUniform(this.inputSize + this.outputSize, this.outputSize, range);
     }
 
     @Override
     public Matrix feedForward(Matrix input) {
-        hiddenState = input.dot(weights).add(hiddenState.dot(hiddenWeights)).add(biases);
-        // Use tanh activation
+        // Combine input and hidden state
+        Matrix combinedInOut = input.concatenateRow(hiddenState);
+
+        hiddenState = combinedInOut.dot(weights).add(biases);
+
+        // Use tanh activation (modifies in place)
         Activations.applyActivation(hiddenState, 3);
         return hiddenState;
     }
@@ -71,22 +65,26 @@ public class RecurrentLayer extends Layer
     public void mutate(float mutationRate, float mutationSize) {
         weights.mutate(mutationRate, mutationSize);
         biases.mutate(mutationRate, mutationSize);
-        hiddenWeights.mutate(mutationRate, mutationSize);
     }
 
     @Override
-    public Layer crossover(Layer other) {
-        RecurrentLayer layer = (RecurrentLayer) other;
-        Matrix newWeights = weights.crossover(layer.weights);
-        Matrix newBiases = biases.crossover(layer.biases);
-        Matrix newHiddenWeights = hiddenWeights.crossover(layer.hiddenWeights);
+    public void insertIntoArray(float[] arr, int index) {
+        Matrix.insertWeightsBiasesIntoArray(arr, index, weights, biases);
+    }
 
-        return new RecurrentLayer(newWeights, newBiases, newHiddenWeights);
+    @Override
+    public RecurrentLayer fromLargerArray(float[] arr, int index) {
+        Matrix newWeights = new Matrix(weights.getRows(), weights.getCols());
+        Matrix newBiases  = new Matrix(biases.getRows(), biases.getCols());
+
+        Matrix.loadWeightsBiasesFromArray(arr, index, newWeights, newBiases);
+
+        return new RecurrentLayer(newWeights, newBiases);
     }
 
     @Override
     public Layer clone() {
-        return new RecurrentLayer(weights.clone(), biases.clone(), hiddenWeights.clone());
+        return new RecurrentLayer(weights.clone(), biases.clone());
     }
 
     @Override
@@ -97,5 +95,10 @@ public class RecurrentLayer extends Layer
     @Override
     public Matrix getBiases() {
         return biases;
+    }
+
+    @Override
+    public int numParams() {
+        return weights.numParams() + biases.numParams();
     }
 }
