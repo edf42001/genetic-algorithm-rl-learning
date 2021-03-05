@@ -11,15 +11,15 @@
             <cargoAmount>0</cargoAmount>
             <progressAmount>0</progressAmount>
         </unit>
-<!--        <unit>-->
-<!--            <ID>1</ID>-->
-<!--            <currentHealth>50</currentHealth>-->
-<!--            <xPosition>20</xPosition>-->
-<!--            <yPosition>9</yPosition>-->
-<!--            <templateID>25</templateID>-->
-<!--            <cargoAmount>0</cargoAmount>-->
-<!--            <progressAmount>0</progressAmount>-->
-<!--        </unit>-->
+        <unit>
+            <ID>1</ID>
+            <currentHealth>50</currentHealth>
+            <xPosition>20</xPosition>
+            <yPosition>9</yPosition>
+            <templateID>25</templateID>
+            <cargoAmount>0</cargoAmount>
+            <progressAmount>0</progressAmount>
+        </unit>
         <template xsi:type="UnitTemplate" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <ID>25</ID>
             <foodCost>1</foodCost>
@@ -70,15 +70,15 @@
             <cargoAmount>0</cargoAmount>
             <progressAmount>0</progressAmount>
         </unit>
-<!--        <unit>-->
-<!--            <ID>7</ID>-->
-<!--            <currentHealth>50</currentHealth>-->
-<!--            <xPosition>4</xPosition>-->
-<!--            <yPosition>8</yPosition>-->
-<!--            <templateID>58</templateID>-->
-<!--            <cargoAmount>0</cargoAmount>-->
-<!--            <progressAmount>0</progressAmount>-->
-<!--        </unit>-->
+        <unit>
+            <ID>7</ID>
+            <currentHealth>50</currentHealth>
+            <xPosition>4</xPosition>
+            <yPosition>8</yPosition>
+            <templateID>58</templateID>
+            <cargoAmount>0</cargoAmount>
+            <progressAmount>0</progressAmount>
+        </unit>
         <template xsi:type="UnitTemplate" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <ID>58</ID>
             <foodCost>1</foodCost>

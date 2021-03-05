@@ -36,12 +36,12 @@ public class EnvironmentServiceClient {
     }
 
     /** Say hello to server. */
-    public void sendData() {
-        float reward = 0.3f;
-        List<Integer> state = new ArrayList<Integer>();
-        state.add(1);
-        state.add(2);
-        state.add(-4);
+    public int sendData(int[] stateData, float reward) {
+        List<Integer> state = new ArrayList<Integer>(3);
+
+        for (int data : stateData) {
+            state.add(data);
+        }
 
         logger.info("Will try to send reward of " + reward + " and state " + state);
         EnvironmentData request = EnvironmentData.newBuilder().setLastActionReward(reward).addAllState(state).build();
@@ -50,9 +50,10 @@ public class EnvironmentServiceClient {
             response = blockingStub.sendEnvironment(request);
         } catch (StatusRuntimeException e) {
             logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus());
-            return;
+            return -1;
         }
         logger.info("Returned action: " + response.getAction());
+        return response.getAction();
     }
 
     /**
@@ -72,7 +73,7 @@ public class EnvironmentServiceClient {
                 .build();
         try {
             EnvironmentServiceClient client = new EnvironmentServiceClient(channel);
-            client.sendData();
+            client.sendData(new int[] {1, 2, 3}, 0.3f);
         } finally {
             // ManagedChannels use resources like threads and TCP connections. To prevent leaking these
             // resources the channel should be shut down when it will no longer be used. If it may be used

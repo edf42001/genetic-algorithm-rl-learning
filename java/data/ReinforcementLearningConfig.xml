@@ -6,15 +6,15 @@
 			<Argument>0</Argument>
 		</AgentClass>
 	</Player>
-<!--	<Player Id="0">-->
-<!--		<AgentClass>-->
-<!--			<ClassName>CombatAgentEnemy</ClassName>-->
-<!--			<Argument>1</Argument>-->
-<!--			<Argument>false</Argument>-->
-<!--			<Argument>false</Argument>-->
-<!--			<Argument>false</Argument>-->
-<!--		</AgentClass>-->
-<!--	</Player>-->
+	<Player Id="0">
+		<AgentClass>
+			<ClassName>CombatAgentEnemy</ClassName>
+			<Argument>1</Argument>
+			<Argument>false</Argument>
+			<Argument>false</Argument>
+			<Argument>false</Argument>
+		</AgentClass>
+	</Player>
 	<Player Id="1">
 		<AgentClass>
 			<ClassName>edu.cwru.sepia.agent.visual.VisualAgent</ClassName>
@@ -26,7 +26,7 @@
 		<Conquest>true</Conquest>
 		<Midas>false</Midas>
 		<ManifestDestiny>false</ManifestDestiny>
-		<TimeLimit>50</TimeLimit>
+		<TimeLimit>1000</TimeLimit>
 	</ModelParameters>
 	<Runner>
 		<RunnerClass>edu.cwru.sepia.experiment.ExampleRunner</RunnerClass>
