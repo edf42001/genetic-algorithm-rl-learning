@@ -1,10 +1,10 @@
 package protos;
 
-import protos.RlEnvironmentData.EnvironmentData;
+import protos.RlEnvironmentData.Environment;
+import protos.RlEnvironmentData.EnvironmentRequest;
 import protos.RlEnvironmentData.ActionResponse;
 
 import protos.EnvironmentServiceGrpc;
-
 
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
@@ -26,6 +26,8 @@ public class EnvironmentServiceClient {
 
     private final EnvironmentServiceGrpc.EnvironmentServiceBlockingStub blockingStub;
 
+    private EnvironmentRequest.Builder messageBuilder;
+
     /** Construct client for accessing HelloWorld server using the existing channel. */
     public EnvironmentServiceClient(Channel channel) {
         // 'channel' here is a Channel, not a ManagedChannel, so it is not this code's responsibility to
@@ -33,29 +35,49 @@ public class EnvironmentServiceClient {
 
         // Passing Channels to code makes code easier to test and makes it easier to reuse Channels.
         blockingStub = EnvironmentServiceGrpc.newBlockingStub(channel);
+
+        // Create empty builder for data to be added to and sent
+        messageBuilder = EnvironmentRequest.newBuilder();
     }
 
-    /** Say hello to server. */
-    public int sendData(int[] stateData, float reward, int unitID) {
+    /** Add a unit's state to the message to send */
+    public void addEnvironmentState(int[] stateData, float reward, int unitID) {
         List<Integer> state = new ArrayList<Integer>(3);
 
         for (int data : stateData) {
             state.add(data);
         }
 
-        logger.info("Will try to send reward of " + reward + ", state " + state + ", unitID " + unitID);
-        EnvironmentData request = EnvironmentData.newBuilder().setLastActionReward(reward).
+        Environment agentData = Environment.newBuilder().setLastActionReward(reward).
                 addAllState(state).setUnitId(unitID).build();
+
+        messageBuilder.addAgentData(agentData);
+    }
+
+    public List<Integer> sendData() {
+        // Get request and reset builder
+        EnvironmentRequest request = messageBuilder.build();
+        messageBuilder = EnvironmentRequest.newBuilder();
+
+        for (Environment e : request.getAgentDataList())
+        {
+            logger.info("Will try to send reward of " + e.getLastActionReward() +
+                    ", state " + e.getStateList() + ", unitID " + e.getUnitId());
+        }
+
         ActionResponse response;
         try {
             response = blockingStub.sendEnvironment(request);
         } catch (StatusRuntimeException e) {
             logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus());
-            return -1;
+            return null;
         }
-        logger.info("Returned action: " + response.getAction());
-        return response.getAction();
+
+        logger.info("Returned actions: " + response.getActionList());
+        return response.getActionList();
     }
+
+
 
     /**
      * Environment client to send data
@@ -74,7 +96,8 @@ public class EnvironmentServiceClient {
                 .build();
         try {
             EnvironmentServiceClient client = new EnvironmentServiceClient(channel);
-            client.sendData(new int[] {1, 2, 3}, 0.3f, 1);
+            client.addEnvironmentState(new int[] {1, 2, 3}, 0.3f, 1);
+            client.sendData();
         } finally {
             // ManagedChannels use resources like threads and TCP connections. To prevent leaking these
             // resources the channel should be shut down when it will no longer be used. If it may be used

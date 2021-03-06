@@ -5,18 +5,25 @@ option java_package = "protos";
 // The environment data service
 service EnvironmentService {
   // Sends data, gets an action
-  rpc SendEnvironment (EnvironmentData) returns (ActionResponse) {}
+  rpc SendEnvironment (EnvironmentRequest) returns (ActionResponse) {}
+}
+
+
+// Send one state and reward info per agent
+message EnvironmentRequest {
+    repeated Environment agent_data = 1;
 }
 
 // The request message, tells the agent the current environment state
 // And the last reward for their last action
-message EnvironmentData {
+message Environment {
   repeated int32 state = 1;
   float last_action_reward = 2;
   int32 unit_id = 3;
 }
 
 // The response message, what action the agent wants to preform
+// Each action corresponds to an agent
 message ActionResponse {
-  int32 action = 1;
+  repeated int32 action = 1;
 }

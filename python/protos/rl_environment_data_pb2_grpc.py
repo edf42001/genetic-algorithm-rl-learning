@@ -17,7 +17,7 @@ class EnvironmentServiceStub(object):
         """
         self.SendEnvironment = channel.unary_unary(
                 '/EnvironmentService/SendEnvironment',
-                request_serializer=rl__environment__data__pb2.EnvironmentData.SerializeToString,
+                request_serializer=rl__environment__data__pb2.EnvironmentRequest.SerializeToString,
                 response_deserializer=rl__environment__data__pb2.ActionResponse.FromString,
                 )
 
@@ -38,7 +38,7 @@ def add_EnvironmentServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'SendEnvironment': grpc.unary_unary_rpc_method_handler(
                     servicer.SendEnvironment,
-                    request_deserializer=rl__environment__data__pb2.EnvironmentData.FromString,
+                    request_deserializer=rl__environment__data__pb2.EnvironmentRequest.FromString,
                     response_serializer=rl__environment__data__pb2.ActionResponse.SerializeToString,
             ),
     }
@@ -64,7 +64,7 @@ class EnvironmentService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/EnvironmentService/SendEnvironment',
-            rl__environment__data__pb2.EnvironmentData.SerializeToString,
+            rl__environment__data__pb2.EnvironmentRequest.SerializeToString,
             rl__environment__data__pb2.ActionResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

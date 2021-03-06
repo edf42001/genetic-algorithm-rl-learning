@@ -14,83 +14,97 @@ class ReinforcementAgent:
         self.last_actions = dict()
         self.last_states = dict()
 
-        self.epsilon = 1.0
-        self.discount_rate = 0.3
-        self.learning_rate = 0.9
+        self.epsilon = 1.0  # Random action chance
+        self.discount_rate = 0.3  # Discount future rewards
+        self.learning_rate = 0.9  # Learning rate
+        self.team_spirit = 0  # How much rewards are shared
 
     def callback(self, request):
-        # Request contains the current state of the world
-        # as a result of the last action and the reward
-        # for the last action
-        state = list(request.state)
-        reward = request.last_action_reward
-        unit_id = request.unit_id
 
-        # If we have not yet done an action we can not
-        # do a q table update so just return a action
-        if unit_id not in self.last_actions:
-            action = self.select_epsilon_action(state)
+        # Get total reward for team spirit and logging
+        total_reward = sum([a.last_action_reward for a in request.agent_data])
 
-            self.last_actions[unit_id] = action
-            self.last_states[unit_id] = state
+        # Actions to be returned
+        actions = []
 
-            return action
+        # An empty state indicates the episode as ended
+        # We still need to use the last reward to update
+        episode_over = len(request.agent_data[0].state) == 0
 
-        # print(self.last_actions)
-        # print(self.last_states)
+        # Request contains, for each agent:
+        # the current state of the world as a result of the last action
+        # and the reward for the last action
+        for data in request.agent_data:
+            state = list(data.state)
+            reward = data.last_action_reward
+            unit_id = data.unit_id
 
-        # An empty state means the episode is over
-        episode_over = (len(state) == 0)
-        if episode_over:
-            # No future if episode is over
-            # Just use end of episode reward
-            max_future_q = 0
-        else:
-            # Get the max reward from the last state and last action
-            # by looking at the max reward of
-            # all actions for the current state
-            max_future_q = np.max(self.q_table[tuple(state)])
+            # If we have not yet done an action we can not
+            # do a q table update so just choose an action
+            # and move on with loop
+            if unit_id not in self.last_actions:
+                action = self.select_epsilon_action(state)
 
-        # current q value of state, action pair
-        # Use tuple to index high dimensional q table
-        indices = tuple(self.last_states[unit_id] + [self.last_actions[unit_id]])
-        current_q = self.q_table[indices]
+                self.last_actions[unit_id] = action
+                self.last_states[unit_id] = state
 
-        # Do the q update with the Bellman equation
-        new_q = current_q + self.learning_rate * (reward + self.discount_rate * max_future_q - current_q)
-        # print("%.5f, %.5f, %.5f, %.5f" % (current_q, max_future_q, reward, new_q))
+                actions += [action]
+                continue
 
-        self.q_table[indices] = new_q
+            if episode_over:
+                # No future if episode is over
+                # Just use end of episode reward
+                max_future_q = 0
+            else:
+                # Get the max reward from the last state and last action
+                # by looking at the max reward of
+                # all actions for the current state
+                max_future_q = np.max(self.q_table[tuple(state)])
 
-        # # print q table for debugging
-        # for i in range(self.q_table.shape[2]):
-        #     print(self.q_table[:, :, i])
-        # print("-------------")
+            # current q value of state, action pair
+            # Use tuple to index high dimensional q table
+            indices = tuple(self.last_states[unit_id] + [self.last_actions[unit_id]])
+            current_q = self.q_table[indices]
 
-        # Print current state's q values
-        # If episode over current state is undefined
-        if not episode_over:
-            print("Unit %d Current state q values:" % unit_id)
-            print(self.q_table[tuple(state)])
-        print("Unit %d Last state q values:" % unit_id)
-        print(self.q_table[tuple(self.last_states[unit_id])])
-        print()
+            # Do the q update with the Bellman equation
+            new_q = current_q + self.learning_rate * (reward + self.discount_rate * max_future_q - current_q)
+            # print("%.5f, %.5f, %.5f, %.5f" % (current_q, max_future_q, reward, new_q))
 
-        if episode_over:
-            # Reset last actions and return a noop action
-            action = -1
-            self.last_actions = dict()
-            print("Episode over, restarting")
-            print("Epsilon: %.3f" % self.epsilon)
-        else:
-            action = self.select_epsilon_action(state)
-            self.last_actions[unit_id] = action
-            self.last_states[unit_id] = state
+            self.q_table[indices] = new_q
+
+            # # print q table for debugging
+            # for i in range(self.q_table.shape[2]):
+            #     print(self.q_table[:, :, i])
+            # print("-------------")
+
+            # Print current state's q values
+            # If episode over current state is undefined
+            if not episode_over:
+                print("Unit %d Current state q values:" % unit_id)
+                print(self.q_table[tuple(state)])
+            print("Unit %d Last state q values:" % unit_id)
+            print(self.q_table[tuple(self.last_states[unit_id])])
+            print()
+
+            if not episode_over:
+                action = self.select_epsilon_action(state)
+                actions += [action]
+                self.last_actions[unit_id] = action
+                self.last_states[unit_id] = state
 
         if self.epsilon > 0.05:
             self.epsilon *= 0.9995
 
-        return action
+        if episode_over:
+            # Reset last actions and return a noop action
+            actions = None
+            self.last_actions = dict()
+            self.last_states = dict()
+            print("Episode over, restarting")
+            print("Last total reward: %.3f" % total_reward)
+            print("Epsilon: %.3f" % self.epsilon)
+
+        return actions
 
     def select_epsilon_action(self, state):
         if np.random.uniform() < self.epsilon:

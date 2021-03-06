@@ -19,13 +19,14 @@ class EnvironmentServiceImpl(rl_environment_data_pb2_grpc.EnvironmentService):
         self.callback = callback
 
     def SendEnvironment(self, request, context):
-        action = -2  # Negative 2 indicates error code
+        action = None  # None indicates error
         try:
             action = self.callback(request)
+            return rl_environment_data_pb2.ActionResponse(action=action)
         except Exception as e:
             traceback.print_exc()
-
-        return rl_environment_data_pb2.ActionResponse(action=action)
+            # Not returning anything will indicate to java
+            # that something went wrong
 
     def serve(self):
         server = grpc.server(futures.ThreadPoolExecutor(max_workers=5))

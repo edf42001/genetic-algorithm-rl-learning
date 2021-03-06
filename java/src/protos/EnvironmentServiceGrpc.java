@@ -30,28 +30,28 @@ public final class EnvironmentServiceGrpc {
   public static final String SERVICE_NAME = "EnvironmentService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<protos.RlEnvironmentData.EnvironmentData,
+  private static volatile io.grpc.MethodDescriptor<protos.RlEnvironmentData.EnvironmentRequest,
       protos.RlEnvironmentData.ActionResponse> getSendEnvironmentMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "SendEnvironment",
-      requestType = protos.RlEnvironmentData.EnvironmentData.class,
+      requestType = protos.RlEnvironmentData.EnvironmentRequest.class,
       responseType = protos.RlEnvironmentData.ActionResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<protos.RlEnvironmentData.EnvironmentData,
+  public static io.grpc.MethodDescriptor<protos.RlEnvironmentData.EnvironmentRequest,
       protos.RlEnvironmentData.ActionResponse> getSendEnvironmentMethod() {
-    io.grpc.MethodDescriptor<protos.RlEnvironmentData.EnvironmentData, protos.RlEnvironmentData.ActionResponse> getSendEnvironmentMethod;
+    io.grpc.MethodDescriptor<protos.RlEnvironmentData.EnvironmentRequest, protos.RlEnvironmentData.ActionResponse> getSendEnvironmentMethod;
     if ((getSendEnvironmentMethod = EnvironmentServiceGrpc.getSendEnvironmentMethod) == null) {
       synchronized (EnvironmentServiceGrpc.class) {
         if ((getSendEnvironmentMethod = EnvironmentServiceGrpc.getSendEnvironmentMethod) == null) {
           EnvironmentServiceGrpc.getSendEnvironmentMethod = getSendEnvironmentMethod = 
-              io.grpc.MethodDescriptor.<protos.RlEnvironmentData.EnvironmentData, protos.RlEnvironmentData.ActionResponse>newBuilder()
+              io.grpc.MethodDescriptor.<protos.RlEnvironmentData.EnvironmentRequest, protos.RlEnvironmentData.ActionResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
                   "EnvironmentService", "SendEnvironment"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  protos.RlEnvironmentData.EnvironmentData.getDefaultInstance()))
+                  protos.RlEnvironmentData.EnvironmentRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   protos.RlEnvironmentData.ActionResponse.getDefaultInstance()))
                   .setSchemaDescriptor(new EnvironmentServiceMethodDescriptorSupplier("SendEnvironment"))
@@ -97,7 +97,7 @@ public final class EnvironmentServiceGrpc {
      * Sends data, gets an action
      * </pre>
      */
-    public void sendEnvironment(protos.RlEnvironmentData.EnvironmentData request,
+    public void sendEnvironment(protos.RlEnvironmentData.EnvironmentRequest request,
         io.grpc.stub.StreamObserver<protos.RlEnvironmentData.ActionResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getSendEnvironmentMethod(), responseObserver);
     }
@@ -108,7 +108,7 @@ public final class EnvironmentServiceGrpc {
             getSendEnvironmentMethod(),
             asyncUnaryCall(
               new MethodHandlers<
-                protos.RlEnvironmentData.EnvironmentData,
+                protos.RlEnvironmentData.EnvironmentRequest,
                 protos.RlEnvironmentData.ActionResponse>(
                   this, METHODID_SEND_ENVIRONMENT)))
           .build();
@@ -141,7 +141,7 @@ public final class EnvironmentServiceGrpc {
      * Sends data, gets an action
      * </pre>
      */
-    public void sendEnvironment(protos.RlEnvironmentData.EnvironmentData request,
+    public void sendEnvironment(protos.RlEnvironmentData.EnvironmentRequest request,
         io.grpc.stub.StreamObserver<protos.RlEnvironmentData.ActionResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getSendEnvironmentMethod(), getCallOptions()), request, responseObserver);
@@ -174,7 +174,7 @@ public final class EnvironmentServiceGrpc {
      * Sends data, gets an action
      * </pre>
      */
-    public protos.RlEnvironmentData.ActionResponse sendEnvironment(protos.RlEnvironmentData.EnvironmentData request) {
+    public protos.RlEnvironmentData.ActionResponse sendEnvironment(protos.RlEnvironmentData.EnvironmentRequest request) {
       return blockingUnaryCall(
           getChannel(), getSendEnvironmentMethod(), getCallOptions(), request);
     }
@@ -207,7 +207,7 @@ public final class EnvironmentServiceGrpc {
      * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<protos.RlEnvironmentData.ActionResponse> sendEnvironment(
-        protos.RlEnvironmentData.EnvironmentData request) {
+        protos.RlEnvironmentData.EnvironmentRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getSendEnvironmentMethod(), getCallOptions()), request);
     }
@@ -233,7 +233,7 @@ public final class EnvironmentServiceGrpc {
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
         case METHODID_SEND_ENVIRONMENT:
-          serviceImpl.sendEnvironment((protos.RlEnvironmentData.EnvironmentData) request,
+          serviceImpl.sendEnvironment((protos.RlEnvironmentData.EnvironmentRequest) request,
               (io.grpc.stub.StreamObserver<protos.RlEnvironmentData.ActionResponse>) responseObserver);
           break;
         default:

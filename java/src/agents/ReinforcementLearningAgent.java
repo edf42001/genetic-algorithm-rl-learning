@@ -198,7 +198,7 @@ public class ReinforcementLearningAgent extends Agent {
         float stepReward = -0.001f;
         float distanceReward = 0.0009f;
         float damageReward = 0.005f;
-        float enemyDamageReward = -0.001f;
+        float enemyDamageReward = -0.004f;
 //        float enemyDamageReward = -0.00f;
 
         float deathReward = 1.0f;
@@ -246,10 +246,10 @@ public class ReinforcementLearningAgent extends Agent {
         float reward = 0;
         float stepReward = -0.001f;
         float damageReward = 0.005f;
-        float enemyDamageReward = -0.001f;
+        float enemyDamageReward = -0.004f;
 //        float enemyDamageReward = -0.00f;
         float winReward = 1.0f;
-        float loseReward = -0.2f;
+        float loseReward = -0.8f;
 
         // Punishment for taking too long
         reward += stepReward;
@@ -342,19 +342,32 @@ public class ReinforcementLearningAgent extends Agent {
         // And list of enemy units
         this.enemyUnitIDs = state.getUnitIds(this.enemyPlayerNum);
 
-//        players.getCurrentPlayer().middleFitnessUpdate(state, history, myUnitIDs, enemyUnitIDs);
-
-        // Run each unit's neural network
-        // They are all the same network,
-        // But each unit sees different things
+        // Get each unit's observations and last reward
+        // Add them to the message to be sent to python
         for (Integer unitID : myUnitIDs)
         {
             int[] unitObservation = observeState(unitID, state);
             float lastReward = findLastReward(unitID, state, history);
-            int action = client.sendData(unitObservation, lastReward, unitID);
-            requestAction(unitID, action, actions);
+            client.addEnvironmentState(unitObservation, lastReward, unitID);
         }
 
+        List<Integer> actionsResponse = client.sendData();
+        if (actionsResponse == null)
+        {
+            System.err.println("Error: actionResponse null. Bad actions returned");
+        }
+        else if (actionsResponse.size() == 0)
+        {
+            System.out.println("Info: Received noop empty actions");
+        }
+        else
+        {
+            // We receive one action for every env data sent
+            for (int i = 0; i < actionsResponse.size(); i++)
+            {
+                requestAction(myUnitIDs.get(i), actionsResponse.get(i), actions);
+            }
+        }
 
         this.lastMyUnitIDs = myUnitIDs;
         this.lastEnemyUnitIDs = enemyUnitIDs;
@@ -363,21 +376,21 @@ public class ReinforcementLearningAgent extends Agent {
 
     @Override
     public void terminalStep(State.StateView state, History.HistoryView history) {
-        // Update unit IDs in case someone died and that ended the epoch
-        // Or don't cause that screws with things??
-        Integer lastSurvivingUnit = myUnitIDs.get(0);
-
         this.myUnitIDs = state.getUnitIds(playernum);
         this.enemyUnitIDs = state.getUnitIds(enemyPlayerNum);
 
-//        for (Integer unitID : myUnitIDs)
-//        {
-//            float lastReward = findFinalLastReward(state, history);
-//            int action = client.sendData(new int[] {}, lastReward, unitID);
-//        }
+        // Send the final reward for units
+        for (Integer unitID : lastMyUnitIDs)
+        {
+            float lastReward = findFinalLastReward(unitID, state, history);
+            client.addEnvironmentState(new int[] {}, lastReward, unitID);
+        }
+        client.sendData();
 
-        float lastReward = findFinalLastReward(lastSurvivingUnit, state, history);
-        // TODO combine update into one message so this doens't suck
-        int action = client.sendData(new int[] {}, lastReward, lastSurvivingUnit);
+        //DO a for int i in range to send reward for all?
+        // Give winning reward to all units or jus the won that made the kill?
+        // Could make unit do move that didn't have anything to do with win
+        // Such as that guy who was going left for that reason most likely
+        // He stole his teammate's reward
     }
 }

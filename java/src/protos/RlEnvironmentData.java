@@ -14,8 +14,798 @@ public final class RlEnvironmentData {
     registerAllExtensions(
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
-  public interface EnvironmentDataOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:EnvironmentData)
+  public interface EnvironmentRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:EnvironmentRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>repeated .Environment agent_data = 1;</code>
+     */
+    java.util.List<protos.RlEnvironmentData.Environment> 
+        getAgentDataList();
+    /**
+     * <code>repeated .Environment agent_data = 1;</code>
+     */
+    protos.RlEnvironmentData.Environment getAgentData(int index);
+    /**
+     * <code>repeated .Environment agent_data = 1;</code>
+     */
+    int getAgentDataCount();
+    /**
+     * <code>repeated .Environment agent_data = 1;</code>
+     */
+    java.util.List<? extends protos.RlEnvironmentData.EnvironmentOrBuilder> 
+        getAgentDataOrBuilderList();
+    /**
+     * <code>repeated .Environment agent_data = 1;</code>
+     */
+    protos.RlEnvironmentData.EnvironmentOrBuilder getAgentDataOrBuilder(
+        int index);
+  }
+  /**
+   * <pre>
+   * Send one state and reward info per agent
+   * </pre>
+   *
+   * Protobuf type {@code EnvironmentRequest}
+   */
+  public  static final class EnvironmentRequest extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:EnvironmentRequest)
+      EnvironmentRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use EnvironmentRequest.newBuilder() to construct.
+    private EnvironmentRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private EnvironmentRequest() {
+      agentData_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private EnvironmentRequest(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            case 10: {
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                agentData_ = new java.util.ArrayList<protos.RlEnvironmentData.Environment>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              agentData_.add(
+                  input.readMessage(protos.RlEnvironmentData.Environment.parser(), extensionRegistry));
+              break;
+            }
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+          agentData_ = java.util.Collections.unmodifiableList(agentData_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return protos.RlEnvironmentData.internal_static_EnvironmentRequest_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return protos.RlEnvironmentData.internal_static_EnvironmentRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              protos.RlEnvironmentData.EnvironmentRequest.class, protos.RlEnvironmentData.EnvironmentRequest.Builder.class);
+    }
+
+    public static final int AGENT_DATA_FIELD_NUMBER = 1;
+    private java.util.List<protos.RlEnvironmentData.Environment> agentData_;
+    /**
+     * <code>repeated .Environment agent_data = 1;</code>
+     */
+    public java.util.List<protos.RlEnvironmentData.Environment> getAgentDataList() {
+      return agentData_;
+    }
+    /**
+     * <code>repeated .Environment agent_data = 1;</code>
+     */
+    public java.util.List<? extends protos.RlEnvironmentData.EnvironmentOrBuilder> 
+        getAgentDataOrBuilderList() {
+      return agentData_;
+    }
+    /**
+     * <code>repeated .Environment agent_data = 1;</code>
+     */
+    public int getAgentDataCount() {
+      return agentData_.size();
+    }
+    /**
+     * <code>repeated .Environment agent_data = 1;</code>
+     */
+    public protos.RlEnvironmentData.Environment getAgentData(int index) {
+      return agentData_.get(index);
+    }
+    /**
+     * <code>repeated .Environment agent_data = 1;</code>
+     */
+    public protos.RlEnvironmentData.EnvironmentOrBuilder getAgentDataOrBuilder(
+        int index) {
+      return agentData_.get(index);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      for (int i = 0; i < agentData_.size(); i++) {
+        output.writeMessage(1, agentData_.get(i));
+      }
+      unknownFields.writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      for (int i = 0; i < agentData_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, agentData_.get(i));
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof protos.RlEnvironmentData.EnvironmentRequest)) {
+        return super.equals(obj);
+      }
+      protos.RlEnvironmentData.EnvironmentRequest other = (protos.RlEnvironmentData.EnvironmentRequest) obj;
+
+      boolean result = true;
+      result = result && getAgentDataList()
+          .equals(other.getAgentDataList());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (getAgentDataCount() > 0) {
+        hash = (37 * hash) + AGENT_DATA_FIELD_NUMBER;
+        hash = (53 * hash) + getAgentDataList().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static protos.RlEnvironmentData.EnvironmentRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static protos.RlEnvironmentData.EnvironmentRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static protos.RlEnvironmentData.EnvironmentRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static protos.RlEnvironmentData.EnvironmentRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static protos.RlEnvironmentData.EnvironmentRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static protos.RlEnvironmentData.EnvironmentRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static protos.RlEnvironmentData.EnvironmentRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static protos.RlEnvironmentData.EnvironmentRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static protos.RlEnvironmentData.EnvironmentRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static protos.RlEnvironmentData.EnvironmentRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static protos.RlEnvironmentData.EnvironmentRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static protos.RlEnvironmentData.EnvironmentRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(protos.RlEnvironmentData.EnvironmentRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Send one state and reward info per agent
+     * </pre>
+     *
+     * Protobuf type {@code EnvironmentRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:EnvironmentRequest)
+        protos.RlEnvironmentData.EnvironmentRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return protos.RlEnvironmentData.internal_static_EnvironmentRequest_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return protos.RlEnvironmentData.internal_static_EnvironmentRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                protos.RlEnvironmentData.EnvironmentRequest.class, protos.RlEnvironmentData.EnvironmentRequest.Builder.class);
+      }
+
+      // Construct using protos.RlEnvironmentData.EnvironmentRequest.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+          getAgentDataFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        if (agentDataBuilder_ == null) {
+          agentData_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+        } else {
+          agentDataBuilder_.clear();
+        }
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return protos.RlEnvironmentData.internal_static_EnvironmentRequest_descriptor;
+      }
+
+      @java.lang.Override
+      public protos.RlEnvironmentData.EnvironmentRequest getDefaultInstanceForType() {
+        return protos.RlEnvironmentData.EnvironmentRequest.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public protos.RlEnvironmentData.EnvironmentRequest build() {
+        protos.RlEnvironmentData.EnvironmentRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public protos.RlEnvironmentData.EnvironmentRequest buildPartial() {
+        protos.RlEnvironmentData.EnvironmentRequest result = new protos.RlEnvironmentData.EnvironmentRequest(this);
+        int from_bitField0_ = bitField0_;
+        if (agentDataBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) == 0x00000001)) {
+            agentData_ = java.util.Collections.unmodifiableList(agentData_);
+            bitField0_ = (bitField0_ & ~0x00000001);
+          }
+          result.agentData_ = agentData_;
+        } else {
+          result.agentData_ = agentDataBuilder_.build();
+        }
+        onBuilt();
+        return result;
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof protos.RlEnvironmentData.EnvironmentRequest) {
+          return mergeFrom((protos.RlEnvironmentData.EnvironmentRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(protos.RlEnvironmentData.EnvironmentRequest other) {
+        if (other == protos.RlEnvironmentData.EnvironmentRequest.getDefaultInstance()) return this;
+        if (agentDataBuilder_ == null) {
+          if (!other.agentData_.isEmpty()) {
+            if (agentData_.isEmpty()) {
+              agentData_ = other.agentData_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+            } else {
+              ensureAgentDataIsMutable();
+              agentData_.addAll(other.agentData_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.agentData_.isEmpty()) {
+            if (agentDataBuilder_.isEmpty()) {
+              agentDataBuilder_.dispose();
+              agentDataBuilder_ = null;
+              agentData_ = other.agentData_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+              agentDataBuilder_ = 
+                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                   getAgentDataFieldBuilder() : null;
+            } else {
+              agentDataBuilder_.addAllMessages(other.agentData_);
+            }
+          }
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        protos.RlEnvironmentData.EnvironmentRequest parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (protos.RlEnvironmentData.EnvironmentRequest) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private java.util.List<protos.RlEnvironmentData.Environment> agentData_ =
+        java.util.Collections.emptyList();
+      private void ensureAgentDataIsMutable() {
+        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+          agentData_ = new java.util.ArrayList<protos.RlEnvironmentData.Environment>(agentData_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          protos.RlEnvironmentData.Environment, protos.RlEnvironmentData.Environment.Builder, protos.RlEnvironmentData.EnvironmentOrBuilder> agentDataBuilder_;
+
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public java.util.List<protos.RlEnvironmentData.Environment> getAgentDataList() {
+        if (agentDataBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(agentData_);
+        } else {
+          return agentDataBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public int getAgentDataCount() {
+        if (agentDataBuilder_ == null) {
+          return agentData_.size();
+        } else {
+          return agentDataBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public protos.RlEnvironmentData.Environment getAgentData(int index) {
+        if (agentDataBuilder_ == null) {
+          return agentData_.get(index);
+        } else {
+          return agentDataBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public Builder setAgentData(
+          int index, protos.RlEnvironmentData.Environment value) {
+        if (agentDataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureAgentDataIsMutable();
+          agentData_.set(index, value);
+          onChanged();
+        } else {
+          agentDataBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public Builder setAgentData(
+          int index, protos.RlEnvironmentData.Environment.Builder builderForValue) {
+        if (agentDataBuilder_ == null) {
+          ensureAgentDataIsMutable();
+          agentData_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          agentDataBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public Builder addAgentData(protos.RlEnvironmentData.Environment value) {
+        if (agentDataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureAgentDataIsMutable();
+          agentData_.add(value);
+          onChanged();
+        } else {
+          agentDataBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public Builder addAgentData(
+          int index, protos.RlEnvironmentData.Environment value) {
+        if (agentDataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureAgentDataIsMutable();
+          agentData_.add(index, value);
+          onChanged();
+        } else {
+          agentDataBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public Builder addAgentData(
+          protos.RlEnvironmentData.Environment.Builder builderForValue) {
+        if (agentDataBuilder_ == null) {
+          ensureAgentDataIsMutable();
+          agentData_.add(builderForValue.build());
+          onChanged();
+        } else {
+          agentDataBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public Builder addAgentData(
+          int index, protos.RlEnvironmentData.Environment.Builder builderForValue) {
+        if (agentDataBuilder_ == null) {
+          ensureAgentDataIsMutable();
+          agentData_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          agentDataBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public Builder addAllAgentData(
+          java.lang.Iterable<? extends protos.RlEnvironmentData.Environment> values) {
+        if (agentDataBuilder_ == null) {
+          ensureAgentDataIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, agentData_);
+          onChanged();
+        } else {
+          agentDataBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public Builder clearAgentData() {
+        if (agentDataBuilder_ == null) {
+          agentData_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+          onChanged();
+        } else {
+          agentDataBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public Builder removeAgentData(int index) {
+        if (agentDataBuilder_ == null) {
+          ensureAgentDataIsMutable();
+          agentData_.remove(index);
+          onChanged();
+        } else {
+          agentDataBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public protos.RlEnvironmentData.Environment.Builder getAgentDataBuilder(
+          int index) {
+        return getAgentDataFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public protos.RlEnvironmentData.EnvironmentOrBuilder getAgentDataOrBuilder(
+          int index) {
+        if (agentDataBuilder_ == null) {
+          return agentData_.get(index);  } else {
+          return agentDataBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public java.util.List<? extends protos.RlEnvironmentData.EnvironmentOrBuilder> 
+           getAgentDataOrBuilderList() {
+        if (agentDataBuilder_ != null) {
+          return agentDataBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(agentData_);
+        }
+      }
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public protos.RlEnvironmentData.Environment.Builder addAgentDataBuilder() {
+        return getAgentDataFieldBuilder().addBuilder(
+            protos.RlEnvironmentData.Environment.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public protos.RlEnvironmentData.Environment.Builder addAgentDataBuilder(
+          int index) {
+        return getAgentDataFieldBuilder().addBuilder(
+            index, protos.RlEnvironmentData.Environment.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .Environment agent_data = 1;</code>
+       */
+      public java.util.List<protos.RlEnvironmentData.Environment.Builder> 
+           getAgentDataBuilderList() {
+        return getAgentDataFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          protos.RlEnvironmentData.Environment, protos.RlEnvironmentData.Environment.Builder, protos.RlEnvironmentData.EnvironmentOrBuilder> 
+          getAgentDataFieldBuilder() {
+        if (agentDataBuilder_ == null) {
+          agentDataBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+              protos.RlEnvironmentData.Environment, protos.RlEnvironmentData.Environment.Builder, protos.RlEnvironmentData.EnvironmentOrBuilder>(
+                  agentData_,
+                  ((bitField0_ & 0x00000001) == 0x00000001),
+                  getParentForChildren(),
+                  isClean());
+          agentData_ = null;
+        }
+        return agentDataBuilder_;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:EnvironmentRequest)
+    }
+
+    // @@protoc_insertion_point(class_scope:EnvironmentRequest)
+    private static final protos.RlEnvironmentData.EnvironmentRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new protos.RlEnvironmentData.EnvironmentRequest();
+    }
+
+    public static protos.RlEnvironmentData.EnvironmentRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<EnvironmentRequest>
+        PARSER = new com.google.protobuf.AbstractParser<EnvironmentRequest>() {
+      @java.lang.Override
+      public EnvironmentRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new EnvironmentRequest(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<EnvironmentRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<EnvironmentRequest> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public protos.RlEnvironmentData.EnvironmentRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface EnvironmentOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:Environment)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -47,18 +837,18 @@ public final class RlEnvironmentData {
    * And the last reward for their last action
    * </pre>
    *
-   * Protobuf type {@code EnvironmentData}
+   * Protobuf type {@code Environment}
    */
-  public  static final class EnvironmentData extends
+  public  static final class Environment extends
       com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:EnvironmentData)
-      EnvironmentDataOrBuilder {
+      // @@protoc_insertion_point(message_implements:Environment)
+      EnvironmentOrBuilder {
   private static final long serialVersionUID = 0L;
-    // Use EnvironmentData.newBuilder() to construct.
-    private EnvironmentData(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+    // Use Environment.newBuilder() to construct.
+    private Environment(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private EnvironmentData() {
+    private Environment() {
       state_ = java.util.Collections.emptyList();
       lastActionReward_ = 0F;
       unitId_ = 0;
@@ -69,7 +859,7 @@ public final class RlEnvironmentData {
     getUnknownFields() {
       return this.unknownFields;
     }
-    private EnvironmentData(
+    private Environment(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -143,15 +933,15 @@ public final class RlEnvironmentData {
     }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return protos.RlEnvironmentData.internal_static_EnvironmentData_descriptor;
+      return protos.RlEnvironmentData.internal_static_Environment_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return protos.RlEnvironmentData.internal_static_EnvironmentData_fieldAccessorTable
+      return protos.RlEnvironmentData.internal_static_Environment_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              protos.RlEnvironmentData.EnvironmentData.class, protos.RlEnvironmentData.EnvironmentData.Builder.class);
+              protos.RlEnvironmentData.Environment.class, protos.RlEnvironmentData.Environment.Builder.class);
     }
 
     private int bitField0_;
@@ -265,10 +1055,10 @@ public final class RlEnvironmentData {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof protos.RlEnvironmentData.EnvironmentData)) {
+      if (!(obj instanceof protos.RlEnvironmentData.Environment)) {
         return super.equals(obj);
       }
-      protos.RlEnvironmentData.EnvironmentData other = (protos.RlEnvironmentData.EnvironmentData) obj;
+      protos.RlEnvironmentData.Environment other = (protos.RlEnvironmentData.Environment) obj;
 
       boolean result = true;
       result = result && getStateList()
@@ -304,69 +1094,69 @@ public final class RlEnvironmentData {
       return hash;
     }
 
-    public static protos.RlEnvironmentData.EnvironmentData parseFrom(
+    public static protos.RlEnvironmentData.Environment parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static protos.RlEnvironmentData.EnvironmentData parseFrom(
+    public static protos.RlEnvironmentData.Environment parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static protos.RlEnvironmentData.EnvironmentData parseFrom(
+    public static protos.RlEnvironmentData.Environment parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static protos.RlEnvironmentData.EnvironmentData parseFrom(
+    public static protos.RlEnvironmentData.Environment parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static protos.RlEnvironmentData.EnvironmentData parseFrom(byte[] data)
+    public static protos.RlEnvironmentData.Environment parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static protos.RlEnvironmentData.EnvironmentData parseFrom(
+    public static protos.RlEnvironmentData.Environment parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static protos.RlEnvironmentData.EnvironmentData parseFrom(java.io.InputStream input)
+    public static protos.RlEnvironmentData.Environment parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static protos.RlEnvironmentData.EnvironmentData parseFrom(
+    public static protos.RlEnvironmentData.Environment parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    public static protos.RlEnvironmentData.EnvironmentData parseDelimitedFrom(java.io.InputStream input)
+    public static protos.RlEnvironmentData.Environment parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input);
     }
-    public static protos.RlEnvironmentData.EnvironmentData parseDelimitedFrom(
+    public static protos.RlEnvironmentData.Environment parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static protos.RlEnvironmentData.EnvironmentData parseFrom(
+    public static protos.RlEnvironmentData.Environment parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static protos.RlEnvironmentData.EnvironmentData parseFrom(
+    public static protos.RlEnvironmentData.Environment parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -379,7 +1169,7 @@ public final class RlEnvironmentData {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(protos.RlEnvironmentData.EnvironmentData prototype) {
+    public static Builder newBuilder(protos.RlEnvironmentData.Environment prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -400,26 +1190,26 @@ public final class RlEnvironmentData {
      * And the last reward for their last action
      * </pre>
      *
-     * Protobuf type {@code EnvironmentData}
+     * Protobuf type {@code Environment}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:EnvironmentData)
-        protos.RlEnvironmentData.EnvironmentDataOrBuilder {
+        // @@protoc_insertion_point(builder_implements:Environment)
+        protos.RlEnvironmentData.EnvironmentOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return protos.RlEnvironmentData.internal_static_EnvironmentData_descriptor;
+        return protos.RlEnvironmentData.internal_static_Environment_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return protos.RlEnvironmentData.internal_static_EnvironmentData_fieldAccessorTable
+        return protos.RlEnvironmentData.internal_static_Environment_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                protos.RlEnvironmentData.EnvironmentData.class, protos.RlEnvironmentData.EnvironmentData.Builder.class);
+                protos.RlEnvironmentData.Environment.class, protos.RlEnvironmentData.Environment.Builder.class);
       }
 
-      // Construct using protos.RlEnvironmentData.EnvironmentData.newBuilder()
+      // Construct using protos.RlEnvironmentData.Environment.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -449,17 +1239,17 @@ public final class RlEnvironmentData {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return protos.RlEnvironmentData.internal_static_EnvironmentData_descriptor;
+        return protos.RlEnvironmentData.internal_static_Environment_descriptor;
       }
 
       @java.lang.Override
-      public protos.RlEnvironmentData.EnvironmentData getDefaultInstanceForType() {
-        return protos.RlEnvironmentData.EnvironmentData.getDefaultInstance();
+      public protos.RlEnvironmentData.Environment getDefaultInstanceForType() {
+        return protos.RlEnvironmentData.Environment.getDefaultInstance();
       }
 
       @java.lang.Override
-      public protos.RlEnvironmentData.EnvironmentData build() {
-        protos.RlEnvironmentData.EnvironmentData result = buildPartial();
+      public protos.RlEnvironmentData.Environment build() {
+        protos.RlEnvironmentData.Environment result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -467,8 +1257,8 @@ public final class RlEnvironmentData {
       }
 
       @java.lang.Override
-      public protos.RlEnvironmentData.EnvironmentData buildPartial() {
-        protos.RlEnvironmentData.EnvironmentData result = new protos.RlEnvironmentData.EnvironmentData(this);
+      public protos.RlEnvironmentData.Environment buildPartial() {
+        protos.RlEnvironmentData.Environment result = new protos.RlEnvironmentData.Environment(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
         if (((bitField0_ & 0x00000001) == 0x00000001)) {
@@ -517,16 +1307,16 @@ public final class RlEnvironmentData {
       }
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof protos.RlEnvironmentData.EnvironmentData) {
-          return mergeFrom((protos.RlEnvironmentData.EnvironmentData)other);
+        if (other instanceof protos.RlEnvironmentData.Environment) {
+          return mergeFrom((protos.RlEnvironmentData.Environment)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(protos.RlEnvironmentData.EnvironmentData other) {
-        if (other == protos.RlEnvironmentData.EnvironmentData.getDefaultInstance()) return this;
+      public Builder mergeFrom(protos.RlEnvironmentData.Environment other) {
+        if (other == protos.RlEnvironmentData.Environment.getDefaultInstance()) return this;
         if (!other.state_.isEmpty()) {
           if (state_.isEmpty()) {
             state_ = other.state_;
@@ -558,11 +1348,11 @@ public final class RlEnvironmentData {
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        protos.RlEnvironmentData.EnvironmentData parsedMessage = null;
+        protos.RlEnvironmentData.Environment parsedMessage = null;
         try {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (protos.RlEnvironmentData.EnvironmentData) e.getUnfinishedMessage();
+          parsedMessage = (protos.RlEnvironmentData.Environment) e.getUnfinishedMessage();
           throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
@@ -703,41 +1493,41 @@ public final class RlEnvironmentData {
       }
 
 
-      // @@protoc_insertion_point(builder_scope:EnvironmentData)
+      // @@protoc_insertion_point(builder_scope:Environment)
     }
 
-    // @@protoc_insertion_point(class_scope:EnvironmentData)
-    private static final protos.RlEnvironmentData.EnvironmentData DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:Environment)
+    private static final protos.RlEnvironmentData.Environment DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new protos.RlEnvironmentData.EnvironmentData();
+      DEFAULT_INSTANCE = new protos.RlEnvironmentData.Environment();
     }
 
-    public static protos.RlEnvironmentData.EnvironmentData getDefaultInstance() {
+    public static protos.RlEnvironmentData.Environment getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<EnvironmentData>
-        PARSER = new com.google.protobuf.AbstractParser<EnvironmentData>() {
+    private static final com.google.protobuf.Parser<Environment>
+        PARSER = new com.google.protobuf.AbstractParser<Environment>() {
       @java.lang.Override
-      public EnvironmentData parsePartialFrom(
+      public Environment parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-        return new EnvironmentData(input, extensionRegistry);
+        return new Environment(input, extensionRegistry);
       }
     };
 
-    public static com.google.protobuf.Parser<EnvironmentData> parser() {
+    public static com.google.protobuf.Parser<Environment> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<EnvironmentData> getParserForType() {
+    public com.google.protobuf.Parser<Environment> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public protos.RlEnvironmentData.EnvironmentData getDefaultInstanceForType() {
+    public protos.RlEnvironmentData.Environment getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -748,13 +1538,22 @@ public final class RlEnvironmentData {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>int32 action = 1;</code>
+     * <code>repeated int32 action = 1;</code>
      */
-    int getAction();
+    java.util.List<java.lang.Integer> getActionList();
+    /**
+     * <code>repeated int32 action = 1;</code>
+     */
+    int getActionCount();
+    /**
+     * <code>repeated int32 action = 1;</code>
+     */
+    int getAction(int index);
   }
   /**
    * <pre>
    * The response message, what action the agent wants to preform
+   * Each action corresponds to an agent
    * </pre>
    *
    * Protobuf type {@code ActionResponse}
@@ -769,7 +1568,7 @@ public final class RlEnvironmentData {
       super(builder);
     }
     private ActionResponse() {
-      action_ = 0;
+      action_ = java.util.Collections.emptyList();
     }
 
     @java.lang.Override
@@ -797,8 +1596,24 @@ public final class RlEnvironmentData {
               done = true;
               break;
             case 8: {
-
-              action_ = input.readInt32();
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                action_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              action_.add(input.readInt32());
+              break;
+            }
+            case 10: {
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001) && input.getBytesUntilLimit() > 0) {
+                action_ = new java.util.ArrayList<java.lang.Integer>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              while (input.getBytesUntilLimit() > 0) {
+                action_.add(input.readInt32());
+              }
+              input.popLimit(limit);
               break;
             }
             default: {
@@ -816,6 +1631,9 @@ public final class RlEnvironmentData {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
+        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+          action_ = java.util.Collections.unmodifiableList(action_);
+        }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
@@ -834,13 +1652,27 @@ public final class RlEnvironmentData {
     }
 
     public static final int ACTION_FIELD_NUMBER = 1;
-    private int action_;
+    private java.util.List<java.lang.Integer> action_;
     /**
-     * <code>int32 action = 1;</code>
+     * <code>repeated int32 action = 1;</code>
      */
-    public int getAction() {
+    public java.util.List<java.lang.Integer>
+        getActionList() {
       return action_;
     }
+    /**
+     * <code>repeated int32 action = 1;</code>
+     */
+    public int getActionCount() {
+      return action_.size();
+    }
+    /**
+     * <code>repeated int32 action = 1;</code>
+     */
+    public int getAction(int index) {
+      return action_.get(index);
+    }
+    private int actionMemoizedSerializedSize = -1;
 
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
@@ -856,8 +1688,13 @@ public final class RlEnvironmentData {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (action_ != 0) {
-        output.writeInt32(1, action_);
+      getSerializedSize();
+      if (getActionList().size() > 0) {
+        output.writeUInt32NoTag(10);
+        output.writeUInt32NoTag(actionMemoizedSerializedSize);
+      }
+      for (int i = 0; i < action_.size(); i++) {
+        output.writeInt32NoTag(action_.get(i));
       }
       unknownFields.writeTo(output);
     }
@@ -868,9 +1705,19 @@ public final class RlEnvironmentData {
       if (size != -1) return size;
 
       size = 0;
-      if (action_ != 0) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(1, action_);
+      {
+        int dataSize = 0;
+        for (int i = 0; i < action_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeInt32SizeNoTag(action_.get(i));
+        }
+        size += dataSize;
+        if (!getActionList().isEmpty()) {
+          size += 1;
+          size += com.google.protobuf.CodedOutputStream
+              .computeInt32SizeNoTag(dataSize);
+        }
+        actionMemoizedSerializedSize = dataSize;
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -888,8 +1735,8 @@ public final class RlEnvironmentData {
       protos.RlEnvironmentData.ActionResponse other = (protos.RlEnvironmentData.ActionResponse) obj;
 
       boolean result = true;
-      result = result && (getAction()
-          == other.getAction());
+      result = result && getActionList()
+          .equals(other.getActionList());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -901,8 +1748,10 @@ public final class RlEnvironmentData {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + ACTION_FIELD_NUMBER;
-      hash = (53 * hash) + getAction();
+      if (getActionCount() > 0) {
+        hash = (37 * hash) + ACTION_FIELD_NUMBER;
+        hash = (53 * hash) + getActionList().hashCode();
+      }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -1001,6 +1850,7 @@ public final class RlEnvironmentData {
     /**
      * <pre>
      * The response message, what action the agent wants to preform
+     * Each action corresponds to an agent
      * </pre>
      *
      * Protobuf type {@code ActionResponse}
@@ -1040,8 +1890,8 @@ public final class RlEnvironmentData {
       @java.lang.Override
       public Builder clear() {
         super.clear();
-        action_ = 0;
-
+        action_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
 
@@ -1068,6 +1918,11 @@ public final class RlEnvironmentData {
       @java.lang.Override
       public protos.RlEnvironmentData.ActionResponse buildPartial() {
         protos.RlEnvironmentData.ActionResponse result = new protos.RlEnvironmentData.ActionResponse(this);
+        int from_bitField0_ = bitField0_;
+        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          action_ = java.util.Collections.unmodifiableList(action_);
+          bitField0_ = (bitField0_ & ~0x00000001);
+        }
         result.action_ = action_;
         onBuilt();
         return result;
@@ -1117,8 +1972,15 @@ public final class RlEnvironmentData {
 
       public Builder mergeFrom(protos.RlEnvironmentData.ActionResponse other) {
         if (other == protos.RlEnvironmentData.ActionResponse.getDefaultInstance()) return this;
-        if (other.getAction() != 0) {
-          setAction(other.getAction());
+        if (!other.action_.isEmpty()) {
+          if (action_.isEmpty()) {
+            action_ = other.action_;
+            bitField0_ = (bitField0_ & ~0x00000001);
+          } else {
+            ensureActionIsMutable();
+            action_.addAll(other.action_);
+          }
+          onChanged();
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -1148,29 +2010,70 @@ public final class RlEnvironmentData {
         }
         return this;
       }
+      private int bitField0_;
 
-      private int action_ ;
-      /**
-       * <code>int32 action = 1;</code>
-       */
-      public int getAction() {
-        return action_;
+      private java.util.List<java.lang.Integer> action_ = java.util.Collections.emptyList();
+      private void ensureActionIsMutable() {
+        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+          action_ = new java.util.ArrayList<java.lang.Integer>(action_);
+          bitField0_ |= 0x00000001;
+         }
       }
       /**
-       * <code>int32 action = 1;</code>
+       * <code>repeated int32 action = 1;</code>
        */
-      public Builder setAction(int value) {
-        
-        action_ = value;
+      public java.util.List<java.lang.Integer>
+          getActionList() {
+        return java.util.Collections.unmodifiableList(action_);
+      }
+      /**
+       * <code>repeated int32 action = 1;</code>
+       */
+      public int getActionCount() {
+        return action_.size();
+      }
+      /**
+       * <code>repeated int32 action = 1;</code>
+       */
+      public int getAction(int index) {
+        return action_.get(index);
+      }
+      /**
+       * <code>repeated int32 action = 1;</code>
+       */
+      public Builder setAction(
+          int index, int value) {
+        ensureActionIsMutable();
+        action_.set(index, value);
         onChanged();
         return this;
       }
       /**
-       * <code>int32 action = 1;</code>
+       * <code>repeated int32 action = 1;</code>
+       */
+      public Builder addAction(int value) {
+        ensureActionIsMutable();
+        action_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int32 action = 1;</code>
+       */
+      public Builder addAllAction(
+          java.lang.Iterable<? extends java.lang.Integer> values) {
+        ensureActionIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, action_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int32 action = 1;</code>
        */
       public Builder clearAction() {
-        
-        action_ = 0;
+        action_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
@@ -1228,10 +2131,15 @@ public final class RlEnvironmentData {
   }
 
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_EnvironmentData_descriptor;
+    internal_static_EnvironmentRequest_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_EnvironmentData_fieldAccessorTable;
+      internal_static_EnvironmentRequest_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_Environment_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_Environment_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_ActionResponse_descriptor;
   private static final 
@@ -1246,12 +2154,14 @@ public final class RlEnvironmentData {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\031rl_environment_data.proto\"M\n\017Environme" +
-      "ntData\022\r\n\005state\030\001 \003(\005\022\032\n\022last_action_rew" +
-      "ard\030\002 \001(\002\022\017\n\007unit_id\030\003 \001(\005\" \n\016ActionResp" +
-      "onse\022\016\n\006action\030\001 \001(\0052L\n\022EnvironmentServi" +
-      "ce\0226\n\017SendEnvironment\022\020.EnvironmentData\032" +
-      "\017.ActionResponse\"\000B\010\n\006protosb\006proto3"
+      "\n\031rl_environment_data.proto\"6\n\022Environme" +
+      "ntRequest\022 \n\nagent_data\030\001 \003(\0132\014.Environm" +
+      "ent\"I\n\013Environment\022\r\n\005state\030\001 \003(\005\022\032\n\022las" +
+      "t_action_reward\030\002 \001(\002\022\017\n\007unit_id\030\003 \001(\005\" " +
+      "\n\016ActionResponse\022\016\n\006action\030\001 \003(\0052O\n\022Envi" +
+      "ronmentService\0229\n\017SendEnvironment\022\023.Envi" +
+      "ronmentRequest\032\017.ActionResponse\"\000B\010\n\006pro" +
+      "tosb\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -1265,14 +2175,20 @@ public final class RlEnvironmentData {
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         }, assigner);
-    internal_static_EnvironmentData_descriptor =
+    internal_static_EnvironmentRequest_descriptor =
       getDescriptor().getMessageTypes().get(0);
-    internal_static_EnvironmentData_fieldAccessorTable = new
+    internal_static_EnvironmentRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_EnvironmentData_descriptor,
+        internal_static_EnvironmentRequest_descriptor,
+        new java.lang.String[] { "AgentData", });
+    internal_static_Environment_descriptor =
+      getDescriptor().getMessageTypes().get(1);
+    internal_static_Environment_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_Environment_descriptor,
         new java.lang.String[] { "State", "LastActionReward", "UnitId", });
     internal_static_ActionResponse_descriptor =
-      getDescriptor().getMessageTypes().get(1);
+      getDescriptor().getMessageTypes().get(2);
     internal_static_ActionResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_ActionResponse_descriptor,
