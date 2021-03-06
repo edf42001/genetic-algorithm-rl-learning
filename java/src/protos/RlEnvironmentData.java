@@ -32,9 +32,14 @@ public final class RlEnvironmentData {
     int getState(int index);
 
     /**
-     * <code>float lastActionReward = 2;</code>
+     * <code>float last_action_reward = 2;</code>
      */
     float getLastActionReward();
+
+    /**
+     * <code>int32 unit_id = 3;</code>
+     */
+    int getUnitId();
   }
   /**
    * <pre>
@@ -56,6 +61,7 @@ public final class RlEnvironmentData {
     private EnvironmentData() {
       state_ = java.util.Collections.emptyList();
       lastActionReward_ = 0F;
+      unitId_ = 0;
     }
 
     @java.lang.Override
@@ -106,6 +112,11 @@ public final class RlEnvironmentData {
             case 21: {
 
               lastActionReward_ = input.readFloat();
+              break;
+            }
+            case 24: {
+
+              unitId_ = input.readInt32();
               break;
             }
             default: {
@@ -167,13 +178,22 @@ public final class RlEnvironmentData {
     }
     private int stateMemoizedSerializedSize = -1;
 
-    public static final int LASTACTIONREWARD_FIELD_NUMBER = 2;
+    public static final int LAST_ACTION_REWARD_FIELD_NUMBER = 2;
     private float lastActionReward_;
     /**
-     * <code>float lastActionReward = 2;</code>
+     * <code>float last_action_reward = 2;</code>
      */
     public float getLastActionReward() {
       return lastActionReward_;
+    }
+
+    public static final int UNIT_ID_FIELD_NUMBER = 3;
+    private int unitId_;
+    /**
+     * <code>int32 unit_id = 3;</code>
+     */
+    public int getUnitId() {
+      return unitId_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -200,6 +220,9 @@ public final class RlEnvironmentData {
       }
       if (lastActionReward_ != 0F) {
         output.writeFloat(2, lastActionReward_);
+      }
+      if (unitId_ != 0) {
+        output.writeInt32(3, unitId_);
       }
       unknownFields.writeTo(output);
     }
@@ -228,6 +251,10 @@ public final class RlEnvironmentData {
         size += com.google.protobuf.CodedOutputStream
           .computeFloatSize(2, lastActionReward_);
       }
+      if (unitId_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(3, unitId_);
+      }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
       return size;
@@ -250,6 +277,8 @@ public final class RlEnvironmentData {
           java.lang.Float.floatToIntBits(getLastActionReward())
           == java.lang.Float.floatToIntBits(
               other.getLastActionReward()));
+      result = result && (getUnitId()
+          == other.getUnitId());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -265,9 +294,11 @@ public final class RlEnvironmentData {
         hash = (37 * hash) + STATE_FIELD_NUMBER;
         hash = (53 * hash) + getStateList().hashCode();
       }
-      hash = (37 * hash) + LASTACTIONREWARD_FIELD_NUMBER;
+      hash = (37 * hash) + LAST_ACTION_REWARD_FIELD_NUMBER;
       hash = (53 * hash) + java.lang.Float.floatToIntBits(
           getLastActionReward());
+      hash = (37 * hash) + UNIT_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getUnitId();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -410,6 +441,8 @@ public final class RlEnvironmentData {
         bitField0_ = (bitField0_ & ~0x00000001);
         lastActionReward_ = 0F;
 
+        unitId_ = 0;
+
         return this;
       }
 
@@ -444,6 +477,7 @@ public final class RlEnvironmentData {
         }
         result.state_ = state_;
         result.lastActionReward_ = lastActionReward_;
+        result.unitId_ = unitId_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -505,6 +539,9 @@ public final class RlEnvironmentData {
         }
         if (other.getLastActionReward() != 0F) {
           setLastActionReward(other.getLastActionReward());
+        }
+        if (other.getUnitId() != 0) {
+          setUnitId(other.getUnitId());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -604,13 +641,13 @@ public final class RlEnvironmentData {
 
       private float lastActionReward_ ;
       /**
-       * <code>float lastActionReward = 2;</code>
+       * <code>float last_action_reward = 2;</code>
        */
       public float getLastActionReward() {
         return lastActionReward_;
       }
       /**
-       * <code>float lastActionReward = 2;</code>
+       * <code>float last_action_reward = 2;</code>
        */
       public Builder setLastActionReward(float value) {
         
@@ -619,11 +656,37 @@ public final class RlEnvironmentData {
         return this;
       }
       /**
-       * <code>float lastActionReward = 2;</code>
+       * <code>float last_action_reward = 2;</code>
        */
       public Builder clearLastActionReward() {
         
         lastActionReward_ = 0F;
+        onChanged();
+        return this;
+      }
+
+      private int unitId_ ;
+      /**
+       * <code>int32 unit_id = 3;</code>
+       */
+      public int getUnitId() {
+        return unitId_;
+      }
+      /**
+       * <code>int32 unit_id = 3;</code>
+       */
+      public Builder setUnitId(int value) {
+        
+        unitId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int32 unit_id = 3;</code>
+       */
+      public Builder clearUnitId() {
+        
+        unitId_ = 0;
         onChanged();
         return this;
       }
@@ -1183,12 +1246,12 @@ public final class RlEnvironmentData {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\031rl_environment_data.proto\":\n\017Environme" +
-      "ntData\022\r\n\005state\030\001 \003(\005\022\030\n\020lastActionRewar" +
-      "d\030\002 \001(\002\" \n\016ActionResponse\022\016\n\006action\030\001 \001(" +
-      "\0052L\n\022EnvironmentService\0226\n\017SendEnvironme" +
-      "nt\022\020.EnvironmentData\032\017.ActionResponse\"\000B" +
-      "\010\n\006protosb\006proto3"
+      "\n\031rl_environment_data.proto\"M\n\017Environme" +
+      "ntData\022\r\n\005state\030\001 \003(\005\022\032\n\022last_action_rew" +
+      "ard\030\002 \001(\002\022\017\n\007unit_id\030\003 \001(\005\" \n\016ActionResp" +
+      "onse\022\016\n\006action\030\001 \001(\0052L\n\022EnvironmentServi" +
+      "ce\0226\n\017SendEnvironment\022\020.EnvironmentData\032" +
+      "\017.ActionResponse\"\000B\010\n\006protosb\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -1207,7 +1270,7 @@ public final class RlEnvironmentData {
     internal_static_EnvironmentData_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_EnvironmentData_descriptor,
-        new java.lang.String[] { "State", "LastActionReward", });
+        new java.lang.String[] { "State", "LastActionReward", "UnitId", });
     internal_static_ActionResponse_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_ActionResponse_fieldAccessorTable = new

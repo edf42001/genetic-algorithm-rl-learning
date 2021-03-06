@@ -12,7 +12,8 @@ service EnvironmentService {
 // And the last reward for their last action
 message EnvironmentData {
   repeated int32 state = 1;
-  float lastActionReward = 2;
+  float last_action_reward = 2;
+  int32 unit_id = 3;
 }
 
 // The response message, what action the agent wants to preform

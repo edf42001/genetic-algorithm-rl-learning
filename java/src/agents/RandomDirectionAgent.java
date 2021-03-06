@@ -4,15 +4,10 @@ import edu.cwru.sepia.action.Action;
 import edu.cwru.sepia.agent.Agent;
 import edu.cwru.sepia.environment.model.history.History;
 import edu.cwru.sepia.environment.model.state.State;
-import edu.cwru.sepia.environment.model.state.Unit.UnitView;
-import edu.cwru.sepia.environment.model.state.UnitTemplate.UnitTemplateView;
 import edu.cwru.sepia.util.Direction;
-import genetics.Population;
-import network.math.Matrix;
 import network.math.MyRand;
 
 import java.io.*;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

@@ -13,6 +13,7 @@ import network.math.MyRand;
 import protos.EnvironmentServiceClient;
 
 import java.io.*;
+import java.sql.Time;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,10 @@ public class ReinforcementLearningAgent extends Agent {
     // Store my and enemies unit ids
     private List<Integer> myUnitIDs;
     private List<Integer> enemyUnitIDs;
+
+    // Used to check actions of units who died last turn
+    private List<Integer> lastMyUnitIDs;
+    private List<Integer> lastEnemyUnitIDs;
 
     // ID of enemy player
     private int enemyPlayerNum = 1;
@@ -82,22 +87,24 @@ public class ReinforcementLearningAgent extends Agent {
     @Override
     public void loadPlayerData(InputStream inputStream) {}
 
-    public int[] observeState(Integer unitID, State.StateView state)
+    /**
+     * The relative location of another unit consists of 2 values:
+     * the x and y components of the enemy
+     * The agent sees in a 5x5 grid around itself with the top left being 0,0
+     * If the enemy is too far away in one direction that direction gets a 5 + 1 = 6
+     * while the other value is 2 (reserved value, because enemy would be overlapping unit)
+     * which is impossible
+     * @param unitID This unit
+     * @param otherID The other unit
+     * @param state Stateview
+     * @return The x, y, or offscreen values
+     */
+    public int[] getUnitRelativeLocation(Integer unitID, Integer otherID, State.StateView state)
     {
-        // The state consists of 2 values: the x and y components of the enemy
-        // relative to the current location
-        // The agent sees in a 5x5 grid around itself with the top left being 0,0
-        // If the enemy is too far away in one direction that direction gets a 5 + 1 = 6
-        // while the other value is 2 (reserved value, because enemy would be overlapping unit)
-        // which is impossible
-        int[] environment = new int[2];
-
-        int range = 2;
-
-        Integer enemyID = enemyUnitIDs.get(0);
+        int range = 2; // How far away units can see
 
         Unit.UnitView unit = state.getUnit(unitID);
-        Unit.UnitView enemy = state.getUnit(enemyID);
+        Unit.UnitView enemy = state.getUnit(otherID);
 
         int dx = enemy.getXPosition() - unit.getXPosition();
         int dy = enemy.getYPosition() - unit.getYPosition();
@@ -125,8 +132,63 @@ public class ReinforcementLearningAgent extends Agent {
         dx += range + 1;
         dy += range + 1;
 
-        environment[0] = dx;
-        environment[1] = dy;
+        return new int[] {dx, dy};
+    }
+
+    public int[] observeState(Integer unitID, State.StateView state)
+    {
+        // Indicates a dead unit
+        int deadValue = 3;
+
+        // 3 other units, x and y for each makes 6
+        // A dead unit gets is placed at the location of
+        // the current unit (which is impossible otherwise)
+        // (that index is (3, 3) I believe)
+        int[] environment = new int[6];
+
+        // Get location of friendly unit
+        // idx keeps track of where in state array we are
+        int[] unitLoc;
+        int idx = 0;
+        for (Integer id : myUnitIDs)
+        {
+            // If not the other unit
+            if (!id.equals(unitID))
+            {
+                unitLoc = getUnitRelativeLocation(unitID, id, state);
+                environment[idx] = unitLoc[0];
+                environment[idx + 1] = unitLoc[1];
+                idx += 2;
+            }
+        }
+
+        // If our friendly unit is dead
+        // Put it in the dead state
+        if (idx == 0)
+        {
+            environment[idx] = deadValue;
+            environment[idx + 1] = deadValue;
+            idx += 2;
+        }
+
+        // Fill in enemies' states
+        // Or dead if they are dead
+        for (Integer id : enemyUnitIDs)
+        {
+            unitLoc = getUnitRelativeLocation(unitID, id, state);
+            environment[idx] = unitLoc[0];
+            environment[idx + 1] = unitLoc[1];
+            idx += 2;
+        }
+
+        // If any enemy units are dead
+        // fill state in with the dead state
+        while (idx < 6)
+        {
+            environment[idx] = deadValue;
+            environment[idx + 1] = deadValue;
+            idx += 2;
+        }
 
         return environment;
     }
@@ -167,10 +229,10 @@ public class ReinforcementLearningAgent extends Agent {
             int damage = damageLog.getDamage();
 
             // If we did the damage
-            if (playernum == damageLog.getAttackerController()) {
+            if (unitID.equals(damageLog.getAttackerID())) {
                 reward += damageReward * damage; // Add to reward
             }
-            else  // The enemy attacked us
+            else if (unitID.equals(damageLog.getDefenderID())) // The enemy attacked us
             {
                 reward += enemyDamageReward * damage; // Subtract from reward
             }
@@ -179,7 +241,7 @@ public class ReinforcementLearningAgent extends Agent {
         return reward;
     }
 
-    public float findFinalLastReward(State.StateView state, History.HistoryView history)
+    public float findFinalLastReward(Integer unitID, State.StateView state, History.HistoryView history)
     {
         float reward = 0;
         float stepReward = -0.001f;
@@ -187,7 +249,7 @@ public class ReinforcementLearningAgent extends Agent {
         float enemyDamageReward = -0.001f;
 //        float enemyDamageReward = -0.00f;
         float winReward = 1.0f;
-        float loseReward = 0.0f;
+        float loseReward = -0.2f;
 
         // Punishment for taking too long
         reward += stepReward;
@@ -212,10 +274,10 @@ public class ReinforcementLearningAgent extends Agent {
             int damage = damageLog.getDamage();
 
             // If we did the damage
-            if (playernum == damageLog.getAttackerController()) {
+            if (unitID.equals(damageLog.getAttackerID())) {
                 reward += damageReward * damage; // Add to reward
             }
-            else  // The enemy attacked us
+            else if (unitID.equals(damageLog.getDefenderID())) // The enemy attacked us
             {
                 reward += enemyDamageReward * damage; // Subtract from reward
             }
@@ -252,9 +314,13 @@ public class ReinforcementLearningAgent extends Agent {
             Integer enemyID = enemyUnitIDs.get(0);
             actions.put(unitID, Action.createPrimitiveAttack(unitID, enemyID));
         }
+        else if (action == -2)
+        {
+            System.err.println("Error: Something went wrong, bad action " + action);
+        }
         else
         {
-            System.err.println("Error: Bad action " + action);
+            System.out.println("Note: noop action " + action);
         }
 
 
@@ -281,26 +347,37 @@ public class ReinforcementLearningAgent extends Agent {
         // Run each unit's neural network
         // They are all the same network,
         // But each unit sees different things
-        if (myUnitIDs.size() > 0 && enemyUnitIDs.size() > 0)
+        for (Integer unitID : myUnitIDs)
         {
-            Integer unitID = myUnitIDs.get(0);
-            int[] environment = observeState(unitID, state);
+            int[] unitObservation = observeState(unitID, state);
             float lastReward = findLastReward(unitID, state, history);
-            int action = client.sendData(environment, lastReward);
+            int action = client.sendData(unitObservation, lastReward, unitID);
             requestAction(unitID, action, actions);
         }
 
+
+        this.lastMyUnitIDs = myUnitIDs;
+        this.lastEnemyUnitIDs = enemyUnitIDs;
         return actions;
     }
 
     @Override
     public void terminalStep(State.StateView state, History.HistoryView history) {
         // Update unit IDs in case someone died and that ended the epoch
+        // Or don't cause that screws with things??
+        Integer lastSurvivingUnit = myUnitIDs.get(0);
+
         this.myUnitIDs = state.getUnitIds(playernum);
         this.enemyUnitIDs = state.getUnitIds(enemyPlayerNum);
 
-        float lastReward = findFinalLastReward(state, history);
-        int action = client.sendData(new int[] {}, lastReward);
+//        for (Integer unitID : myUnitIDs)
+//        {
+//            float lastReward = findFinalLastReward(state, history);
+//            int action = client.sendData(new int[] {}, lastReward, unitID);
+//        }
 
+        float lastReward = findFinalLastReward(lastSurvivingUnit, state, history);
+        // TODO combine update into one message so this doens't suck
+        int action = client.sendData(new int[] {}, lastReward, lastSurvivingUnit);
     }
 }
