@@ -37,6 +37,15 @@
             <version>1.15.1</version>
         </dependency>
 
+        <!--Sepia dependency. systemPath has been called "dirty" solution-->
+        <dependency>
+            <groupId>edu.cwru.sepia</groupId>
+            <artifactId>sepia</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/Sepia.jar</systemPath>
+        </dependency>
+
     </dependencies>
 
     <build>
