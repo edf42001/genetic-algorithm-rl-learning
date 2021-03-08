@@ -5,12 +5,14 @@ and sends back an action
 """
 import traceback
 from concurrent import futures
-import logging
 
 import grpc
+import logging
 
 import rl_environment_data_pb2
 import rl_environment_data_pb2_grpc
+
+from data_saving.data_saver import DataSaver
 
 
 class EnvironmentServiceImpl(rl_environment_data_pb2_grpc.EnvironmentService):
@@ -37,17 +39,3 @@ class EnvironmentServiceImpl(rl_environment_data_pb2_grpc.EnvironmentService):
             server.wait_for_termination()
         except KeyboardInterrupt as e:
             print("Keyboard interrupt, shutting down server")
-
-
-def callback(request):
-    # print("Recieved data:")
-    # print(request)
-    return 1
-
-
-
-
-
-if __name__ == '__main__':
-    logging.basicConfig()
-    serve()

@@ -4,6 +4,9 @@ import sys
 from environment_service_server import EnvironmentServiceImpl
 
 import numpy as np
+import os.path
+
+from data_saving.data_saver import DataSaver
 
 
 class ReinforcementAgent:
@@ -15,14 +18,29 @@ class ReinforcementAgent:
         self.last_states = dict()
 
         self.epsilon = 1.0  # Random action chance
-        self.discount_rate = 0.3  # Discount future rewards
-        self.learning_rate = 0.9  # Learning rate
+        self.discount_rate = 0.95  # Discount future rewards. Time horizon = 1 / (1 - rate)
+        self.learning_rate = 0.05  # Learning rate
         self.team_spirit = 0  # How much rewards are shared
+
+        # Create object to handle data saving
+        self.data_saver = DataSaver("saved_data")
+
+        # Create a new folder for the current time
+        self.data_saver.create_new_date_folder()
+        self.data_saver.open_rewards_file()
+        print(os.path.abspath(self.data_saver.data_folder))
+
+        self.total_epoch_reward = 0
+
+    def on_shutdown(self):
+        print("Closing rewards file")
+        self.data_saver.close_rewards_file()
 
     def callback(self, request):
 
         # Get total reward for team spirit and logging
         total_reward = sum([a.last_action_reward for a in request.agent_data])
+        self.total_epoch_reward += total_reward
 
         # Actions to be returned
         actions = []
@@ -92,14 +110,19 @@ class ReinforcementAgent:
                 self.last_actions[unit_id] = action
                 self.last_states[unit_id] = state
 
-        if self.epsilon > 0.05:
-            self.epsilon *= 0.9995
+        if self.epsilon > 0.1:
+            self.epsilon *= 0.9999
 
         if episode_over:
             # Reset last actions and return a noop action
             actions = None
             self.last_actions = dict()
             self.last_states = dict()
+
+            # Save total epoch reward and reset
+            self.data_saver.write_line_to_rewards_file([self.total_epoch_reward])
+            self.total_epoch_reward = 0
+
             print("Episode over, restarting")
             print("Last total reward: %.3f" % total_reward)
             print("Epsilon: %.3f" % self.epsilon)
@@ -119,3 +142,4 @@ class ReinforcementAgent:
 if __name__ == "__main__":
     agent = ReinforcementAgent()
     agent.server.serve()
+    agent.on_shutdown()
