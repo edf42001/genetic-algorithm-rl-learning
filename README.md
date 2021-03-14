@@ -1,13 +1,13 @@
 # Reinforcement Learning and Genetic Algorithms
 
 This project is an experimental dive into machine learning to create an agent for the SEPIA environment.
-[SEPIA] (https://github.com/timernsberger/sepia) (Strategy Engine for Programming Intelligent Agents) is a Java environment given to those in CWRU's CSDS 391 (Intro to AI) course.
+[SEPIA](https://github.com/timernsberger/sepia) (Strategy Engine for Programming Intelligent Agents) is a Java environment given to those in CWRU's CSDS 391 (Intro to AI) course.
 Agents in this environment control units which can perform tasks such as gathering resources, building buildings, and fighting. I have chosen to focus on the combat aspect as I find it the most exciting.
 
 This project uses gRPC to allow the neural network code (written in Python) to communicate with SEPIA (written in Java).
 
-I was heavily inspired by the [paper] (https://arxiv.org/abs/1912.06680) written by OpenAI on their DOTA 2 bot, a reinforcement learning algorithm that learned
-to play the video game DOTA 2. 
+Implementation is heavily inspired by the [paper](https://arxiv.org/abs/1912.06680) written by OpenAI on their DOTA 2 bot,
+a reinforcement learning algorithm that learns to play the video game DOTA 2. 
 
 ## SEPIA
 The SEPIA environment consists of a grid of squares that can be occupied by a unit, a resource, or be empty.
@@ -25,9 +25,9 @@ When the Fog of War is on, units can only "see" a certain distance. When it is o
 of the game state. By default, the Fog of War is off. 
 
 The following picture shows an example SEPIA game state. The green units are on Team 0, and the red units are on Team 1.
+The "f" stands for Footman, a simple unit with an attack range of 1 square.
 
-![SEPIA environment] (readme_images/sepia_basic.png "SEPIA environment")
-
+![SEPIA environment](readme_images/sepia_basic.png "SEPIA environment")
 
 ## Methods
 
@@ -52,8 +52,36 @@ implementing an observation->actions policy for RL agents. Two common ones are a
 neural network.
 
 ## Genetic Algorithm Implementation
-As the GA was the first method investigated, gRPC was not integrated into the project yet. Instead of being able to use python's
+As the GA was the first method investigated, gRPC was not integrated into the project yet. Thus, instead of being able to use python's
 many machine learning packages, a very basic neural network implementation was written from scratch in Java.
-There were only three different layer types, a Dense layer, Recurrent layer, and LSTM layer. 
+There were only three different layer types, a Dense layer, Recurrent layer, and LSTM layer.
 
+An agent in SEPIA controls the entire team of units. Each unit, has a copy of the neural network that is being evolved.
+Units will take different actions because each unit observes different the world relative to where they are.
 
+#### Network architecture
+
+The brain of an agent consisted of a 3 layer neural network: two recurrent layers of size 16 followed by a fully connected (dense)
+layer of size 16.
+
+#### Observation space
+
+The inputs to this network consist of: The unit's current health, then, for every friendly unit, the x and y
+displacement to us, and their health. And the same for enemy units. This gives an input size of 10, when playing a 2v2 match.
+
+#### Action space
+
+The action space is 8. The action taken is the output neuron with the highest value. The action space is: move north, south,
+east, or west, or attack one of the enemy units. If no neuron has an activation of > 0.5, no action is taken.
+
+#### Fitness
+
+Fitness was based on average distance to the enemy (to encourage encounters where damage could be dealt), amount of damage dealt,
+and amount of enemy units killed.
+
+#### Results
+A population size of around 400 was used, and training for 500 epochs would take around 3 minutes.
+However, agents were usually only able to kill only one of the enemy units, no more. It was at this time that development
+pivoted to reinforcement learning. 
+
+## Reinforcement Learning Implementation
