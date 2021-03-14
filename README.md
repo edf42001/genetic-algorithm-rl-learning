@@ -9,6 +9,21 @@ This project uses gRPC to allow the neural network code (written in Python) to c
 Implementation is heavily inspired by the [paper](https://arxiv.org/abs/1912.06680) written by OpenAI on their DOTA 2 bot,
 a reinforcement learning algorithm that learns to play the video game DOTA 2. 
 
+## Table of Contents
+* [Reinforcement Learning and Genetic Algorithms](#reinforcement-learning-and-genetic-algorithms)
+    * [SEPIA](#sepia)
+    * [Methods](#methods)
+      * [Genetic Algorithms](#genetic-algorithms)
+      * [Reinforcement Learning](#reinforcement-learning)
+    * [Genetic Algorithm Implementation](#genetic-algorithm-implementation)
+      * [Network architecture](#network-architecture)
+      * [Observation space](#observation-space)
+      * [Action space](#action-space)
+      * [Fitness](#fitness)
+      * [Results](#results)
+    * [Reinforcement Learning Implementation](#reinforcement-learning-implementation)
+
+
 ## SEPIA
 The SEPIA environment consists of a grid of squares that can be occupied by a unit, a resource, or be empty.
 Units can move, gather resources, build buildings, and attack other units. Each unit can carry a different amount of resources,
