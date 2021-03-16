@@ -41,6 +41,15 @@ public final class RlEnvironmentData {
      */
     protos.RlEnvironmentData.EnvironmentOrBuilder getAgentDataOrBuilder(
         int index);
+
+    /**
+     * <pre>
+     * Which player on the board this data belongs to
+     * </pre>
+     *
+     * <code>int32 player_id = 2;</code>
+     */
+    int getPlayerId();
   }
   /**
    * <pre>
@@ -60,6 +69,7 @@ public final class RlEnvironmentData {
     }
     private EnvironmentRequest() {
       agentData_ = java.util.Collections.emptyList();
+      playerId_ = 0;
     }
 
     @java.lang.Override
@@ -93,6 +103,11 @@ public final class RlEnvironmentData {
               }
               agentData_.add(
                   input.readMessage(protos.RlEnvironmentData.Environment.parser(), extensionRegistry));
+              break;
+            }
+            case 16: {
+
+              playerId_ = input.readInt32();
               break;
             }
             default: {
@@ -130,6 +145,7 @@ public final class RlEnvironmentData {
               protos.RlEnvironmentData.EnvironmentRequest.class, protos.RlEnvironmentData.EnvironmentRequest.Builder.class);
     }
 
+    private int bitField0_;
     public static final int AGENT_DATA_FIELD_NUMBER = 1;
     private java.util.List<protos.RlEnvironmentData.Environment> agentData_;
     /**
@@ -165,6 +181,19 @@ public final class RlEnvironmentData {
       return agentData_.get(index);
     }
 
+    public static final int PLAYER_ID_FIELD_NUMBER = 2;
+    private int playerId_;
+    /**
+     * <pre>
+     * Which player on the board this data belongs to
+     * </pre>
+     *
+     * <code>int32 player_id = 2;</code>
+     */
+    public int getPlayerId() {
+      return playerId_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -182,6 +211,9 @@ public final class RlEnvironmentData {
       for (int i = 0; i < agentData_.size(); i++) {
         output.writeMessage(1, agentData_.get(i));
       }
+      if (playerId_ != 0) {
+        output.writeInt32(2, playerId_);
+      }
       unknownFields.writeTo(output);
     }
 
@@ -194,6 +226,10 @@ public final class RlEnvironmentData {
       for (int i = 0; i < agentData_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(1, agentData_.get(i));
+      }
+      if (playerId_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(2, playerId_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -213,6 +249,8 @@ public final class RlEnvironmentData {
       boolean result = true;
       result = result && getAgentDataList()
           .equals(other.getAgentDataList());
+      result = result && (getPlayerId()
+          == other.getPlayerId());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -228,6 +266,8 @@ public final class RlEnvironmentData {
         hash = (37 * hash) + AGENT_DATA_FIELD_NUMBER;
         hash = (53 * hash) + getAgentDataList().hashCode();
       }
+      hash = (37 * hash) + PLAYER_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getPlayerId();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -372,6 +412,8 @@ public final class RlEnvironmentData {
         } else {
           agentDataBuilder_.clear();
         }
+        playerId_ = 0;
+
         return this;
       }
 
@@ -399,6 +441,7 @@ public final class RlEnvironmentData {
       public protos.RlEnvironmentData.EnvironmentRequest buildPartial() {
         protos.RlEnvironmentData.EnvironmentRequest result = new protos.RlEnvironmentData.EnvironmentRequest(this);
         int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
         if (agentDataBuilder_ == null) {
           if (((bitField0_ & 0x00000001) == 0x00000001)) {
             agentData_ = java.util.Collections.unmodifiableList(agentData_);
@@ -408,6 +451,8 @@ public final class RlEnvironmentData {
         } else {
           result.agentData_ = agentDataBuilder_.build();
         }
+        result.playerId_ = playerId_;
+        result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
@@ -481,6 +526,9 @@ public final class RlEnvironmentData {
               agentDataBuilder_.addAllMessages(other.agentData_);
             }
           }
+        }
+        if (other.getPlayerId() != 0) {
+          setPlayerId(other.getPlayerId());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -750,6 +798,44 @@ public final class RlEnvironmentData {
           agentData_ = null;
         }
         return agentDataBuilder_;
+      }
+
+      private int playerId_ ;
+      /**
+       * <pre>
+       * Which player on the board this data belongs to
+       * </pre>
+       *
+       * <code>int32 player_id = 2;</code>
+       */
+      public int getPlayerId() {
+        return playerId_;
+      }
+      /**
+       * <pre>
+       * Which player on the board this data belongs to
+       * </pre>
+       *
+       * <code>int32 player_id = 2;</code>
+       */
+      public Builder setPlayerId(int value) {
+        
+        playerId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Which player on the board this data belongs to
+       * </pre>
+       *
+       * <code>int32 player_id = 2;</code>
+       */
+      public Builder clearPlayerId() {
+        
+        playerId_ = 0;
+        onChanged();
+        return this;
       }
       @java.lang.Override
       public final Builder setUnknownFields(
@@ -2154,14 +2240,14 @@ public final class RlEnvironmentData {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\031rl_environment_data.proto\"6\n\022Environme" +
+      "\n\031rl_environment_data.proto\"I\n\022Environme" +
       "ntRequest\022 \n\nagent_data\030\001 \003(\0132\014.Environm" +
-      "ent\"I\n\013Environment\022\r\n\005state\030\001 \003(\005\022\032\n\022las" +
-      "t_action_reward\030\002 \001(\002\022\017\n\007unit_id\030\003 \001(\005\" " +
-      "\n\016ActionResponse\022\016\n\006action\030\001 \003(\0052O\n\022Envi" +
-      "ronmentService\0229\n\017SendEnvironment\022\023.Envi" +
-      "ronmentRequest\032\017.ActionResponse\"\000B\010\n\006pro" +
-      "tosb\006proto3"
+      "ent\022\021\n\tplayer_id\030\002 \001(\005\"I\n\013Environment\022\r\n" +
+      "\005state\030\001 \003(\005\022\032\n\022last_action_reward\030\002 \001(\002" +
+      "\022\017\n\007unit_id\030\003 \001(\005\" \n\016ActionResponse\022\016\n\006a" +
+      "ction\030\001 \003(\0052O\n\022EnvironmentService\0229\n\017Sen" +
+      "dEnvironment\022\023.EnvironmentRequest\032\017.Acti" +
+      "onResponse\"\000B\010\n\006protosb\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -2180,7 +2266,7 @@ public final class RlEnvironmentData {
     internal_static_EnvironmentRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_EnvironmentRequest_descriptor,
-        new java.lang.String[] { "AgentData", });
+        new java.lang.String[] { "AgentData", "PlayerId", });
     internal_static_Environment_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_Environment_fieldAccessorTable = new

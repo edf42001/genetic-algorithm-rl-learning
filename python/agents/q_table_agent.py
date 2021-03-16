@@ -1,18 +1,9 @@
-#!/usr/bin/env python3
-import sys
-
-from environment_service_server import EnvironmentServiceImpl
-
 import numpy as np
-import os.path
-
-from data_saving.data_saver import DataSaver
+import pickle
 
 
-class ReinforcementAgent:
+class QTableAgent:
     def __init__(self):
-        self.server = EnvironmentServiceImpl(self.callback)
-
         self.q_table = np.zeros((7, 7, 7, 7, 7, 7, 5))
         self.last_actions = dict()
         self.last_states = dict()
@@ -22,22 +13,38 @@ class ReinforcementAgent:
         self.learning_rate = 0.05  # Learning rate
         self.team_spirit = 0  # How much rewards are shared
 
-        # Create object to handle data saving
-        self.data_saver = DataSaver("saved_data")
-
-        # Create a new folder for the current time
-        self.data_saver.create_new_date_folder()
-        self.data_saver.open_rewards_file()
-        print(os.path.abspath(self.data_saver.data_folder))
+        # The agent only takes actions in eval mode, and doesn't train
+        self.eval_mode = False
 
         self.total_epoch_reward = 0
 
-    def on_shutdown(self):
-        print("Closing rewards file")
-        self.data_saver.close_rewards_file()
+    def eval_mode_update(self, request):
+        # Actions to be returned
+        actions = []
 
-    def callback(self, request):
+        # An empty state indicates the episode as ended
+        episode_over = len(request.agent_data[0].state) == 0
 
+        if episode_over:
+            return None
+
+        # Because we are in eval mode, we don't care about the reward
+        # just return the best action for the state
+        for data in request.agent_data:
+            state = list(data.state)
+
+            action = self.select_epsilon_action(state, 0)
+            actions += [action]
+
+        return actions
+
+    def learning_mode_update(self, request):
+        """
+        This function does the Q table update and returns
+        the next actions to take
+        :param request: Data from the SEPIA environment
+        :return: Actions for units in SEPIA to take. Is passed to gRPC server
+        """
         # Get total reward for team spirit and logging
         total_reward = sum([a.last_action_reward for a in request.agent_data])
         self.total_epoch_reward += total_reward
@@ -61,7 +68,7 @@ class ReinforcementAgent:
             # do a q table update so just choose an action
             # and move on with loop
             if unit_id not in self.last_actions:
-                action = self.select_epsilon_action(state)
+                action = self.select_epsilon_action(state, self.epsilon)
 
                 self.last_actions[unit_id] = action
                 self.last_states[unit_id] = state
@@ -90,27 +97,22 @@ class ReinforcementAgent:
 
             self.q_table[indices] = new_q
 
-            # # print q table for debugging
-            # for i in range(self.q_table.shape[2]):
-            #     print(self.q_table[:, :, i])
-            # print("-------------")
-
             # Print current state's q values
             # If episode over current state is undefined
-            if not episode_over:
-                print("Unit %d Current state q values:" % unit_id)
-                print(self.q_table[tuple(state)])
-            print("Unit %d Last state q values:" % unit_id)
-            print(self.q_table[tuple(self.last_states[unit_id])])
-            print()
+            # if not episode_over:
+            #     print("Unit %d Current state q values:" % unit_id)
+            #     print(self.q_table[tuple(state)])
+            # print("Unit %d Last state q values:" % unit_id)
+            # print(self.q_table[tuple(self.last_states[unit_id])])
+            # print()
 
             if not episode_over:
-                action = self.select_epsilon_action(state)
+                action = self.select_epsilon_action(state, self.epsilon)
                 actions += [action]
                 self.last_actions[unit_id] = action
                 self.last_states[unit_id] = state
 
-        if self.epsilon > 0.1:
+        if self.epsilon > 0.05:
             self.epsilon *= 0.9999
 
         if episode_over:
@@ -120,7 +122,7 @@ class ReinforcementAgent:
             self.last_states = dict()
 
             # Save total epoch reward and reset
-            self.data_saver.write_line_to_rewards_file([self.total_epoch_reward])
+            # self.data_saver.write_line_to_rewards_file([self.total_epoch_reward])
             self.total_epoch_reward = 0
 
             print("Episode over, restarting")
@@ -129,17 +131,35 @@ class ReinforcementAgent:
 
         return actions
 
-    def select_epsilon_action(self, state):
-        if np.random.uniform() < self.epsilon:
+    def callback(self, request):
+        """Simply pass the request to the corresponding handler"""
+        if self.eval_mode:
+            self.eval_mode_update(request)
+        else:
+            self.learning_mode_update(request)
+
+    def select_epsilon_action(self, state, epsilon):
+        if np.random.uniform() < epsilon:
             action = np.random.randint(5)
-            print("Taking random action " + str(action))
+            # print("Taking random action " + str(action))
         else:
             action = np.argmax(self.q_table[tuple(state)])
 
         return action
 
+    def save_to_file(self, file):
+        data = dict()
+        data["name"] = "QTableAgent"
+        data["q_table"] = self.q_table
 
-if __name__ == "__main__":
-    agent = ReinforcementAgent()
-    agent.server.serve()
-    agent.on_shutdown()
+        with open(file, 'wb') as f:
+            pickle.dump(data, f)
+
+    def load_from_file(self, file):
+        with open(file, 'rb') as f:
+            data = pickle.load(f)
+
+            self.q_table = data["q_table"]
+
+    def set_eval_mode(self, eval_mode):
+        self.eval_mode = eval_mode

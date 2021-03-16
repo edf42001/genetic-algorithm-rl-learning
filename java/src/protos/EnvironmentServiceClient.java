@@ -61,8 +61,8 @@ public class EnvironmentServiceClient {
 
         for (Environment e : request.getAgentDataList())
         {
-            logger.info("Will try to send reward of " + e.getLastActionReward() +
-                    ", state " + e.getStateList() + ", unitID " + e.getUnitId());
+//            logger.info("Will try to send reward of " + e.getLastActionReward() +
+//                    ", state " + e.getStateList() + ", unitID " + e.getUnitId());
         }
 
         ActionResponse response;
@@ -73,7 +73,7 @@ public class EnvironmentServiceClient {
             return null;
         }
 
-        logger.info("Returned actions: " + response.getActionList());
+//        logger.info("Returned actions: " + response.getActionList());
         return response.getActionList();
     }
 

@@ -14,14 +14,15 @@ class DataSaver:
 
         self.rewards_file = None
 
-    def create_if_not_exist(self, folder):
+    @staticmethod
+    def create_if_not_exist(folder):
         if not os.path.exists(folder):
             os.makedirs(folder)
 
     def create_new_date_folder(self):
-        now = datetime.datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
+        now = DataSaver.get_time_string()
         path = self.folder + "/" + now
-        self.create_if_not_exist(path)
+        DataSaver.create_if_not_exist(path)
 
         self.data_folder = path
 
@@ -34,6 +35,21 @@ class DataSaver:
 
     def close_rewards_file(self):
         self.rewards_file.close()
+
+    def save_agent_to_file(self, agent):
+        now = DataSaver.get_time_string()
+        folder = self.folder + "/trueskill/reference_agents/" + now
+
+        DataSaver.create_if_not_exist(folder)
+        path = folder + "/" + "agent.p"
+
+        agent.save_to_file(path)
+
+    @staticmethod
+    def get_time_string():
+        # Formatted for use in file names
+        return datetime.datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
+
 
 
 

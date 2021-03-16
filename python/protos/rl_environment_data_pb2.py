@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\006protos',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x19rl_environment_data.proto\"6\n\x12\x45nvironmentRequest\x12 \n\nagent_data\x18\x01 \x03(\x0b\x32\x0c.Environment\"I\n\x0b\x45nvironment\x12\r\n\x05state\x18\x01 \x03(\x05\x12\x1a\n\x12last_action_reward\x18\x02 \x01(\x02\x12\x0f\n\x07unit_id\x18\x03 \x01(\x05\" \n\x0e\x41\x63tionResponse\x12\x0e\n\x06\x61\x63tion\x18\x01 \x03(\x05\x32O\n\x12\x45nvironmentService\x12\x39\n\x0fSendEnvironment\x12\x13.EnvironmentRequest\x1a\x0f.ActionResponse\"\x00\x42\x08\n\x06protosb\x06proto3'
+  serialized_pb=b'\n\x19rl_environment_data.proto\"I\n\x12\x45nvironmentRequest\x12 \n\nagent_data\x18\x01 \x03(\x0b\x32\x0c.Environment\x12\x11\n\tplayer_id\x18\x02 \x01(\x05\"I\n\x0b\x45nvironment\x12\r\n\x05state\x18\x01 \x03(\x05\x12\x1a\n\x12last_action_reward\x18\x02 \x01(\x02\x12\x0f\n\x07unit_id\x18\x03 \x01(\x05\" \n\x0e\x41\x63tionResponse\x12\x0e\n\x06\x61\x63tion\x18\x01 \x03(\x05\x32O\n\x12\x45nvironmentService\x12\x39\n\x0fSendEnvironment\x12\x13.EnvironmentRequest\x1a\x0f.ActionResponse\"\x00\x42\x08\n\x06protosb\x06proto3'
 )
 
 
@@ -40,6 +40,13 @@ _ENVIRONMENTREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='player_id', full_name='EnvironmentRequest.player_id', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -53,7 +60,7 @@ _ENVIRONMENTREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=29,
-  serialized_end=83,
+  serialized_end=102,
 )
 
 
@@ -98,8 +105,8 @@ _ENVIRONMENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=85,
-  serialized_end=158,
+  serialized_start=104,
+  serialized_end=177,
 )
 
 
@@ -130,8 +137,8 @@ _ACTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=160,
-  serialized_end=192,
+  serialized_start=179,
+  serialized_end=211,
 )
 
 _ENVIRONMENTREQUEST.fields_by_name['agent_data'].message_type = _ENVIRONMENT
@@ -171,8 +178,8 @@ _ENVIRONMENTSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=194,
-  serialized_end=273,
+  serialized_start=213,
+  serialized_end=292,
   methods=[
   _descriptor.MethodDescriptor(
     name='SendEnvironment',

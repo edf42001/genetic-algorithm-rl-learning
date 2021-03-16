@@ -12,6 +12,9 @@ service EnvironmentService {
 // Send one state and reward info per agent
 message EnvironmentRequest {
     repeated Environment agent_data = 1;
+
+     // Which player on the board this data belongs to
+    int32 player_id = 2;
 }
 
 // The request message, tells the agent the current environment state
