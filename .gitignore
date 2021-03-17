@@ -7,7 +7,13 @@ java/enemy_agents
 java/lib
 java/out
 java/saves
-java/saved_data
+java/target
+
+# Saved data
+**/saved_data
+
+# Don't need this file, it has way too many unit definitions in it
+java/data/Combat.xml
 
 # Python
 **/__pycache__
