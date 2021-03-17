@@ -80,7 +80,6 @@ public class ReinforcementLearningAgent extends Agent {
         }, "Shutdown-thread"));
     }
 
-
     @Override
     public void savePlayerData(OutputStream outputStream) {}
 
@@ -108,6 +107,15 @@ public class ReinforcementLearningAgent extends Agent {
 
         int dx = enemy.getXPosition() - unit.getXPosition();
         int dy = enemy.getYPosition() - unit.getYPosition();
+
+        // Units expect to be player 1, in the left side of the field
+        // Flip their state if they are on the other side of the field
+        // so they get data they are used to
+        if (playernum == 0)
+        {
+            dx *= -1;
+            dy *= -1;
+        }
 
         // If x or y is greater or less than range
         // clip the value and set the other to the reserved
@@ -286,9 +294,17 @@ public class ReinforcementLearningAgent extends Agent {
         return reward;
     }
 
-    public void requestAction(Integer unitID, int action, Map<Integer, Action> actions)
+    public void requestAction(Integer unitID, int action, Map<Integer, Action> actions, State.StateView state)
     {
         if (action >= 0 && action < 4) {
+            // Agents expect to be player 1, on the left of the screen
+            // When an agent on the right of the screen says to go right,
+            // they actually mean left. This flips left/right, up/down for that agent
+            if (playernum == 0)
+            {
+                action = (action + 2) % 4;
+            }
+
             Direction dir = Direction.NORTH; // Default value so it compiles
             switch (action) {
                 case 0:
@@ -311,8 +327,27 @@ public class ReinforcementLearningAgent extends Agent {
         }
         else if(action == 4)
         {
-            Integer enemyID = enemyUnitIDs.get(0);
-            actions.put(unitID, Action.createPrimitiveAttack(unitID, enemyID));
+            Unit.UnitView unit = state.getUnit(unitID);
+
+            // Find the closest enemy and attack them
+            // may not be in range
+            Integer closestEnemyID = enemyUnitIDs.get(0);
+            int closestEnemyDist = Integer.MAX_VALUE;
+            for (Integer enemyID : enemyUnitIDs)
+            {
+                Unit.UnitView enemy = state.getUnit(enemyID);
+
+                int dx = enemy.getXPosition() - unit.getXPosition();
+                int dy = enemy.getYPosition() - unit.getYPosition();
+
+                if (Math.max(dx, dy) < closestEnemyDist)
+                {
+                    closestEnemyDist = Math.max(dx, dy);
+                    closestEnemyID = enemyID;
+                }
+            }
+
+            actions.put(unitID, Action.createPrimitiveAttack(unitID, closestEnemyID));
         }
         else if (action == -2)
         {
@@ -322,13 +357,11 @@ public class ReinforcementLearningAgent extends Agent {
         {
             System.out.println("Note: noop action " + action);
         }
-
-
     }
 
     @Override
     public Map<Integer, Action> initialStep(State.StateView state, History.HistoryView history) {
-        return null;
+        return middleStep(state, history);
     }
 
     @Override
@@ -351,7 +384,7 @@ public class ReinforcementLearningAgent extends Agent {
             client.addEnvironmentState(unitObservation, lastReward, unitID);
         }
 
-        List<Integer> actionsResponse = client.sendData();
+        List<Integer> actionsResponse = client.sendData(1 - playernum);
         if (actionsResponse == null)
         {
             System.err.println("Error: actionResponse null. Bad actions returned");
@@ -365,7 +398,7 @@ public class ReinforcementLearningAgent extends Agent {
             // We receive one action for every env data sent
             for (int i = 0; i < actionsResponse.size(); i++)
             {
-                requestAction(myUnitIDs.get(i), actionsResponse.get(i), actions);
+                requestAction(myUnitIDs.get(i), actionsResponse.get(i), actions, state);
             }
         }
 
@@ -385,7 +418,20 @@ public class ReinforcementLearningAgent extends Agent {
             float lastReward = findFinalLastReward(unitID, state, history);
             client.addEnvironmentState(new int[] {}, lastReward, unitID);
         }
-        client.sendData();
+
+        int winner = -1;
+        // Win, lose, or tie
+        // Here "player0" is green, but thats player id 1, so do 1 - to swap
+        if (enemyUnitIDs.size() == 0)
+        {
+            winner = 1 - playernum;
+        }
+        else if (myUnitIDs.size() == 0)
+        {
+            winner = 1 - enemyPlayerNum;
+        }
+        client.sendWinner(winner, 1 - playernum);
+        client.sendData(1 - playernum);
 
         //DO a for int i in range to send reward for all?
         // Give winning reward to all units or jus the won that made the kill?

@@ -6,6 +6,17 @@ option java_package = "protos";
 service EnvironmentService {
   // Sends data, gets an action
   rpc SendEnvironment (EnvironmentRequest) returns (ActionResponse) {}
+
+  // Send who won
+  rpc SendWinner (WinnerRequest) returns (Empty) {}
+}
+
+// Send who won
+message WinnerRequest {
+    int32 winner = 1; // 0 or 1, or -1 if tie
+
+    // The player who is sending this data
+    int32 player_id = 2;
 }
 
 
@@ -29,4 +40,7 @@ message Environment {
 // Each action corresponds to an agent
 message ActionResponse {
   repeated int32 action = 1;
+}
+
+message Empty {
 }

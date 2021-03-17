@@ -62,6 +62,38 @@ public final class EnvironmentServiceGrpc {
      return getSendEnvironmentMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<protos.RlEnvironmentData.WinnerRequest,
+      protos.RlEnvironmentData.Empty> getSendWinnerMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "SendWinner",
+      requestType = protos.RlEnvironmentData.WinnerRequest.class,
+      responseType = protos.RlEnvironmentData.Empty.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<protos.RlEnvironmentData.WinnerRequest,
+      protos.RlEnvironmentData.Empty> getSendWinnerMethod() {
+    io.grpc.MethodDescriptor<protos.RlEnvironmentData.WinnerRequest, protos.RlEnvironmentData.Empty> getSendWinnerMethod;
+    if ((getSendWinnerMethod = EnvironmentServiceGrpc.getSendWinnerMethod) == null) {
+      synchronized (EnvironmentServiceGrpc.class) {
+        if ((getSendWinnerMethod = EnvironmentServiceGrpc.getSendWinnerMethod) == null) {
+          EnvironmentServiceGrpc.getSendWinnerMethod = getSendWinnerMethod = 
+              io.grpc.MethodDescriptor.<protos.RlEnvironmentData.WinnerRequest, protos.RlEnvironmentData.Empty>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "EnvironmentService", "SendWinner"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  protos.RlEnvironmentData.WinnerRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  protos.RlEnvironmentData.Empty.getDefaultInstance()))
+                  .setSchemaDescriptor(new EnvironmentServiceMethodDescriptorSupplier("SendWinner"))
+                  .build();
+          }
+        }
+     }
+     return getSendWinnerMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -102,6 +134,16 @@ public final class EnvironmentServiceGrpc {
       asyncUnimplementedUnaryCall(getSendEnvironmentMethod(), responseObserver);
     }
 
+    /**
+     * <pre>
+     * Send who won
+     * </pre>
+     */
+    public void sendWinner(protos.RlEnvironmentData.WinnerRequest request,
+        io.grpc.stub.StreamObserver<protos.RlEnvironmentData.Empty> responseObserver) {
+      asyncUnimplementedUnaryCall(getSendWinnerMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -111,6 +153,13 @@ public final class EnvironmentServiceGrpc {
                 protos.RlEnvironmentData.EnvironmentRequest,
                 protos.RlEnvironmentData.ActionResponse>(
                   this, METHODID_SEND_ENVIRONMENT)))
+          .addMethod(
+            getSendWinnerMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                protos.RlEnvironmentData.WinnerRequest,
+                protos.RlEnvironmentData.Empty>(
+                  this, METHODID_SEND_WINNER)))
           .build();
     }
   }
@@ -146,6 +195,17 @@ public final class EnvironmentServiceGrpc {
       asyncUnaryCall(
           getChannel().newCall(getSendEnvironmentMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     * <pre>
+     * Send who won
+     * </pre>
+     */
+    public void sendWinner(protos.RlEnvironmentData.WinnerRequest request,
+        io.grpc.stub.StreamObserver<protos.RlEnvironmentData.Empty> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getSendWinnerMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -177,6 +237,16 @@ public final class EnvironmentServiceGrpc {
     public protos.RlEnvironmentData.ActionResponse sendEnvironment(protos.RlEnvironmentData.EnvironmentRequest request) {
       return blockingUnaryCall(
           getChannel(), getSendEnvironmentMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     * Send who won
+     * </pre>
+     */
+    public protos.RlEnvironmentData.Empty sendWinner(protos.RlEnvironmentData.WinnerRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getSendWinnerMethod(), getCallOptions(), request);
     }
   }
 
@@ -211,9 +281,21 @@ public final class EnvironmentServiceGrpc {
       return futureUnaryCall(
           getChannel().newCall(getSendEnvironmentMethod(), getCallOptions()), request);
     }
+
+    /**
+     * <pre>
+     * Send who won
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<protos.RlEnvironmentData.Empty> sendWinner(
+        protos.RlEnvironmentData.WinnerRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getSendWinnerMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_SEND_ENVIRONMENT = 0;
+  private static final int METHODID_SEND_WINNER = 1;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -235,6 +317,10 @@ public final class EnvironmentServiceGrpc {
         case METHODID_SEND_ENVIRONMENT:
           serviceImpl.sendEnvironment((protos.RlEnvironmentData.EnvironmentRequest) request,
               (io.grpc.stub.StreamObserver<protos.RlEnvironmentData.ActionResponse>) responseObserver);
+          break;
+        case METHODID_SEND_WINNER:
+          serviceImpl.sendWinner((protos.RlEnvironmentData.WinnerRequest) request,
+              (io.grpc.stub.StreamObserver<protos.RlEnvironmentData.Empty>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -298,6 +384,7 @@ public final class EnvironmentServiceGrpc {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new EnvironmentServiceFileDescriptorSupplier())
               .addMethod(getSendEnvironmentMethod())
+              .addMethod(getSendWinnerMethod())
               .build();
         }
       }

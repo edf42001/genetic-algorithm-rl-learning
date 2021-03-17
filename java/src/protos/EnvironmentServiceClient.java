@@ -2,6 +2,7 @@ package protos;
 
 import protos.RlEnvironmentData.Environment;
 import protos.RlEnvironmentData.EnvironmentRequest;
+import protos.RlEnvironmentData.WinnerRequest;
 import protos.RlEnvironmentData.ActionResponse;
 
 import protos.EnvironmentServiceGrpc;
@@ -54,9 +55,9 @@ public class EnvironmentServiceClient {
         messageBuilder.addAgentData(agentData);
     }
 
-    public List<Integer> sendData() {
+    public List<Integer> sendData(int playerID) {
         // Get request and reset builder
-        EnvironmentRequest request = messageBuilder.build();
+        EnvironmentRequest request = messageBuilder.setPlayerId(playerID).build();
         messageBuilder = EnvironmentRequest.newBuilder();
 
         for (Environment e : request.getAgentDataList())
@@ -75,6 +76,21 @@ public class EnvironmentServiceClient {
 
 //        logger.info("Returned actions: " + response.getActionList());
         return response.getActionList();
+    }
+
+    public boolean sendWinner(int winner, int playerID) {
+        // Get request and reset builder
+        WinnerRequest request = WinnerRequest.newBuilder().setWinner(winner).setPlayerId(playerID).build();
+
+//        logger.info("Will try to send winner " + request.getWinner());
+
+        try {
+            blockingStub.sendWinner(request);
+            return true;
+        } catch (StatusRuntimeException e) {
+            logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus());
+            return false;
+        }
     }
 
 
@@ -97,7 +113,7 @@ public class EnvironmentServiceClient {
         try {
             EnvironmentServiceClient client = new EnvironmentServiceClient(channel);
             client.addEnvironmentState(new int[] {1, 2, 3}, 0.3f, 1);
-            client.sendData();
+            client.sendData(0);
         } finally {
             // ManagedChannels use resources like threads and TCP connections. To prevent leaking these
             // resources the channel should be shut down when it will no longer be used. If it may be used

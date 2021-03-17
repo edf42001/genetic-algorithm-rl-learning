@@ -9,6 +9,7 @@ class QTableAgent:
         self.last_states = dict()
 
         self.epsilon = 1.0  # Random action chance
+        self.epsilon_decay = 0.99995
         self.discount_rate = 0.95  # Discount future rewards. Time horizon = 1 / (1 - rate)
         self.learning_rate = 0.05  # Learning rate
         self.team_spirit = 0  # How much rewards are shared
@@ -32,7 +33,6 @@ class QTableAgent:
         # just return the best action for the state
         for data in request.agent_data:
             state = list(data.state)
-
             action = self.select_epsilon_action(state, 0)
             actions += [action]
 
@@ -113,7 +113,7 @@ class QTableAgent:
                 self.last_states[unit_id] = state
 
         if self.epsilon > 0.05:
-            self.epsilon *= 0.9999
+            self.epsilon *= self.epsilon_decay
 
         if episode_over:
             # Reset last actions and return a noop action
@@ -134,9 +134,9 @@ class QTableAgent:
     def callback(self, request):
         """Simply pass the request to the corresponding handler"""
         if self.eval_mode:
-            self.eval_mode_update(request)
+            return self.eval_mode_update(request)
         else:
-            self.learning_mode_update(request)
+            return self.learning_mode_update(request)
 
     def select_epsilon_action(self, state, epsilon):
         if np.random.uniform() < epsilon:

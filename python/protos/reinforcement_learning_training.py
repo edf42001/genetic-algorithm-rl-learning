@@ -14,7 +14,7 @@ import time
 
 class RLTraining:
     def __init__(self):
-        self.server = EnvironmentServiceImpl(self.callback)
+        self.server = EnvironmentServiceImpl(self.env_callback, self.winner_callback)
 
         self.agent = QTableAgent()
 
@@ -36,15 +36,19 @@ class RLTraining:
         print(self.iterations)
         print(time.time() - self.start_time)
 
-    def callback(self, request):
+    def env_callback(self, request):
         self.iterations += 1
 
-        if self.iterations % 10000 == 0:
+        if self.iterations % 20000 == 0:
             print("Saving agent to file")
             self.data_saver.save_agent_to_file(self.agent)
 
         # Pass the data to the agent, and return the actions returned
         return self.agent.callback(request)
+
+    # Do nothing
+    def winner_callback(self, request):
+        return None
 
 
 if __name__ == "__main__":

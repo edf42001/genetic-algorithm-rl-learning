@@ -11,10 +11,10 @@ from agents.q_table_agent import QTableAgent
 class TrueSkillTournament:
     def __init__(self):
         # Server from SEPIA
-        self.server = EnvironmentServiceImpl(self.callback)
+        self.server = EnvironmentServiceImpl(self.env_callback, self.winner_callback)
 
         # Which two agents are currently being played against each other
-        self.active_agents = [0, 1]
+        self.active_agents = [0, 0]
 
         # List of agents in tournament. Will be ~50MB total
         self.agents = []
@@ -26,31 +26,58 @@ class TrueSkillTournament:
         self.trials = 0
 
         # How many total trials to do before we are done
-        self.num_trials = 5
+        self.num_trials = 20
 
-        # Whether or not we are finished with the testing
-        self.done = False
+        # Wins, losses, ties
+        self.win_stats = [0, 0, 0]
+
+        # True if player 1 is a sepia agent, not another one of our agents
+        self.playing_against_sepia = True
 
         # Load agents from disk
         self.load_agents("../saved_data/trueskill/reference_agents")
 
         # Set up the trueskill environment and make it a global env
-        env = trueskill.TrueSkill(mu=25.0, sigma=8.33, beta=4.17, tau=0.0833, draw_probability=0.1)
+        env = trueskill.TrueSkill(mu=25.0, sigma=8.33, beta=4.17, tau=0, draw_probability=0.05)
         env.make_as_global()
 
         # Initialize ratings to be all the same
         self.ratings = [trueskill.Rating() for _ in range(len(self.agents))]
+        self.sepia_rating = trueskill.Rating()
 
-    def callback(self, request):
-        # An empty state indicates the episode as ended
-        episode_over = len(request.agent_data[0].state) == 0
+        # Print who is playing right now
+        print("Now playing version %d vs %d" % (self.active_agents[0], self.active_agents[1]))
+
+    def winner_callback(self, request):
+        # Who won?
+        winner = request.winner
+
+        # Which player sent this data
+        player_id = request.player_id
 
         # When the episode is over, switch to the next agent to train
-        if episode_over:
-            # If agent[0] has played against all other agents
-            if self.active_agents[1] == len(self.agents) - 1:
-                # and agent[0] is the last agent in the list
+        # We will get two episode over notices, from each agent
+        # so only update on one of them
+        if player_id == 0:
+            agent0_wins = (winner == 0)
+            draw = (winner == -1)
+
+            self.win_stats[winner] += 1
+
+            # Update the ratings based on the match result
+            self.update_ratings(agent0_wins=agent0_wins, draw=draw)
+
+            if self.playing_against_sepia:
                 if self.active_agents[0] == len(self.agents) - 1:
+                    self.active_agents[0] = 0
+                    self.trials += 1
+                    print("Trials elapsed: " + str(self.trials))
+                else:
+                    self.active_agents[0] += 1
+            # If agent[0] has played against all other agents
+            elif self.active_agents[1] == len(self.agents) - 1:
+                # and agent[0] is the second to last, because the last agent would have noone to play
+                if self.active_agents[0] == len(self.agents) - 2:
                     # Reset agents to the first for next trial runs
                     self.active_agents = [0, 1]
                     self.trials += 1
@@ -63,37 +90,63 @@ class TrueSkillTournament:
                 self.active_agents[1] += 1
 
             # Stop if we have reached the trial limit
-            if self.trials == self.num_trials:
-                self.done = True
+            if self.trials >= self.num_trials:
                 print("Final ratings")
                 print(self.ratings)
+                print(" ".join(["%.2f" % rating.mu for rating in self.ratings]))
+                print("Sepia bot rating")
+                print(self.sepia_rating)
+                print("Win stats")
+                print(self.win_stats)
                 sys.exit(0)
 
-            # Update the ratings based on the match result
-            self.update_ratings(agent0_wins=True, draw=False)
+            # Print who is playing right now
+            # print("Now playing version %d vs %d" % (self.active_agents[0], self.active_agents[1]))
 
-        agent0 = self.agents[self.active_agents[0]]
-        agent1 = self.active_agents[0]
+    def env_callback(self, request):
+        # Which player sent this data
+        player_id = request.player_id
 
-        actions = agent0.callback(request)
-        return actions
+        # An empty state indicates the episode as ended
+        episode_over = len(request.agent_data[0].state) == 0
+
+        # Return actions if the episode is not over
+        if not episode_over:
+            # Get the current active agent controlled by the player whose data was sent
+            agent = self.agents[self.active_agents[player_id]]
+            actions = agent.callback(request)
+            return actions
 
     def update_ratings(self, agent0_wins, draw):
-        # Need to pass winner as first argument to rate_1vs1
-        if agent0_wins:
-            winner_idx = self.active_agents[0]
-            loser_idx = self.active_agents[1]
-        else:
-            winner_idx = self.active_agents[1]
-            loser_idx = self.active_agents[0]
-
         # Update the ratings based on the result of the match
-        rating0, rating1 = trueskill.rate_1vs1(self.ratings[winner_idx], self.ratings[loser_idx], drawn=draw)
-        self.ratings[winner_idx] = rating0
-        self.ratings[loser_idx] = rating1
+        # Need to pass winner as first argument to rate_1vs1
+        if self.playing_against_sepia:
+            # print("Before ratings " + str(self.ratings[self.active_agents[0]]) + " " + str(self.sepia_rating))
+            # print("Agent0 won " + str(agent0_wins))
+            if agent0_wins:
+                rating0, rating1 = trueskill.rate_1vs1(self.ratings[self.active_agents[0]], self.sepia_rating, drawn=draw)
+                self.ratings[self.active_agents[0]] = rating0
+                self.sepia_rating = rating1
+            else:
+                rating0, rating1 = trueskill.rate_1vs1(self.sepia_rating, self.ratings[self.active_agents[0]], drawn=draw)
+                self.sepia_rating = rating0
+                self.ratings[self.active_agents[0]] = rating1
+            # print("After ratings " + str(self.ratings[self.active_agents[0]]) + " " + str(self.sepia_rating))
+
+        else:
+            if agent0_wins:
+                winner_idx = self.active_agents[0]
+                loser_idx = self.active_agents[1]
+            else:
+                winner_idx = self.active_agents[1]
+                loser_idx = self.active_agents[0]
+
+            rating0, rating1 = trueskill.rate_1vs1(self.ratings[winner_idx], self.ratings[loser_idx], drawn=draw)
+            self.ratings[winner_idx] = rating0
+            self.ratings[loser_idx] = rating1
 
     def load_agents(self, agents_folder):
-        for agent_folder in glob.glob(agents_folder + "/*"):
+        for agent_folder in sorted(glob.glob(agents_folder + "/*")):
             file = agent_folder + "/agent.p"
             agent = QTableAgent()
             agent.load_from_file(file)

@@ -20,6 +20,11 @@ class EnvironmentServiceStub(object):
                 request_serializer=rl__environment__data__pb2.EnvironmentRequest.SerializeToString,
                 response_deserializer=rl__environment__data__pb2.ActionResponse.FromString,
                 )
+        self.SendWinner = channel.unary_unary(
+                '/EnvironmentService/SendWinner',
+                request_serializer=rl__environment__data__pb2.WinnerRequest.SerializeToString,
+                response_deserializer=rl__environment__data__pb2.Empty.FromString,
+                )
 
 
 class EnvironmentServiceServicer(object):
@@ -33,6 +38,13 @@ class EnvironmentServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SendWinner(self, request, context):
+        """Send who won
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_EnvironmentServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -40,6 +52,11 @@ def add_EnvironmentServiceServicer_to_server(servicer, server):
                     servicer.SendEnvironment,
                     request_deserializer=rl__environment__data__pb2.EnvironmentRequest.FromString,
                     response_serializer=rl__environment__data__pb2.ActionResponse.SerializeToString,
+            ),
+            'SendWinner': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendWinner,
+                    request_deserializer=rl__environment__data__pb2.WinnerRequest.FromString,
+                    response_serializer=rl__environment__data__pb2.Empty.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -66,5 +83,22 @@ class EnvironmentService(object):
         return grpc.experimental.unary_unary(request, target, '/EnvironmentService/SendEnvironment',
             rl__environment__data__pb2.EnvironmentRequest.SerializeToString,
             rl__environment__data__pb2.ActionResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SendWinner(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/EnvironmentService/SendWinner',
+            rl__environment__data__pb2.WinnerRequest.SerializeToString,
+            rl__environment__data__pb2.Empty.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

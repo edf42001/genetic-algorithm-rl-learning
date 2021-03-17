@@ -19,10 +19,49 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\006protos',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x19rl_environment_data.proto\"I\n\x12\x45nvironmentRequest\x12 \n\nagent_data\x18\x01 \x03(\x0b\x32\x0c.Environment\x12\x11\n\tplayer_id\x18\x02 \x01(\x05\"I\n\x0b\x45nvironment\x12\r\n\x05state\x18\x01 \x03(\x05\x12\x1a\n\x12last_action_reward\x18\x02 \x01(\x02\x12\x0f\n\x07unit_id\x18\x03 \x01(\x05\" \n\x0e\x41\x63tionResponse\x12\x0e\n\x06\x61\x63tion\x18\x01 \x03(\x05\x32O\n\x12\x45nvironmentService\x12\x39\n\x0fSendEnvironment\x12\x13.EnvironmentRequest\x1a\x0f.ActionResponse\"\x00\x42\x08\n\x06protosb\x06proto3'
+  serialized_pb=b'\n\x19rl_environment_data.proto\"2\n\rWinnerRequest\x12\x0e\n\x06winner\x18\x01 \x01(\x05\x12\x11\n\tplayer_id\x18\x02 \x01(\x05\"I\n\x12\x45nvironmentRequest\x12 \n\nagent_data\x18\x01 \x03(\x0b\x32\x0c.Environment\x12\x11\n\tplayer_id\x18\x02 \x01(\x05\"I\n\x0b\x45nvironment\x12\r\n\x05state\x18\x01 \x03(\x05\x12\x1a\n\x12last_action_reward\x18\x02 \x01(\x02\x12\x0f\n\x07unit_id\x18\x03 \x01(\x05\" \n\x0e\x41\x63tionResponse\x12\x0e\n\x06\x61\x63tion\x18\x01 \x03(\x05\"\x07\n\x05\x45mpty2w\n\x12\x45nvironmentService\x12\x39\n\x0fSendEnvironment\x12\x13.EnvironmentRequest\x1a\x0f.ActionResponse\"\x00\x12&\n\nSendWinner\x12\x0e.WinnerRequest\x1a\x06.Empty\"\x00\x42\x08\n\x06protosb\x06proto3'
 )
 
 
+
+
+_WINNERREQUEST = _descriptor.Descriptor(
+  name='WinnerRequest',
+  full_name='WinnerRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='winner', full_name='WinnerRequest.winner', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='player_id', full_name='WinnerRequest.player_id', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=29,
+  serialized_end=79,
+)
 
 
 _ENVIRONMENTREQUEST = _descriptor.Descriptor(
@@ -59,8 +98,8 @@ _ENVIRONMENTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=29,
-  serialized_end=102,
+  serialized_start=81,
+  serialized_end=154,
 )
 
 
@@ -105,8 +144,8 @@ _ENVIRONMENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=104,
-  serialized_end=177,
+  serialized_start=156,
+  serialized_end=229,
 )
 
 
@@ -137,15 +176,49 @@ _ACTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=179,
-  serialized_end=211,
+  serialized_start=231,
+  serialized_end=263,
+)
+
+
+_EMPTY = _descriptor.Descriptor(
+  name='Empty',
+  full_name='Empty',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=265,
+  serialized_end=272,
 )
 
 _ENVIRONMENTREQUEST.fields_by_name['agent_data'].message_type = _ENVIRONMENT
+DESCRIPTOR.message_types_by_name['WinnerRequest'] = _WINNERREQUEST
 DESCRIPTOR.message_types_by_name['EnvironmentRequest'] = _ENVIRONMENTREQUEST
 DESCRIPTOR.message_types_by_name['Environment'] = _ENVIRONMENT
 DESCRIPTOR.message_types_by_name['ActionResponse'] = _ACTIONRESPONSE
+DESCRIPTOR.message_types_by_name['Empty'] = _EMPTY
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
+
+WinnerRequest = _reflection.GeneratedProtocolMessageType('WinnerRequest', (_message.Message,), {
+  'DESCRIPTOR' : _WINNERREQUEST,
+  '__module__' : 'rl_environment_data_pb2'
+  # @@protoc_insertion_point(class_scope:WinnerRequest)
+  })
+_sym_db.RegisterMessage(WinnerRequest)
 
 EnvironmentRequest = _reflection.GeneratedProtocolMessageType('EnvironmentRequest', (_message.Message,), {
   'DESCRIPTOR' : _ENVIRONMENTREQUEST,
@@ -168,6 +241,13 @@ ActionResponse = _reflection.GeneratedProtocolMessageType('ActionResponse', (_me
   })
 _sym_db.RegisterMessage(ActionResponse)
 
+Empty = _reflection.GeneratedProtocolMessageType('Empty', (_message.Message,), {
+  'DESCRIPTOR' : _EMPTY,
+  '__module__' : 'rl_environment_data_pb2'
+  # @@protoc_insertion_point(class_scope:Empty)
+  })
+_sym_db.RegisterMessage(Empty)
+
 
 DESCRIPTOR._options = None
 
@@ -178,8 +258,8 @@ _ENVIRONMENTSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=213,
-  serialized_end=292,
+  serialized_start=274,
+  serialized_end=393,
   methods=[
   _descriptor.MethodDescriptor(
     name='SendEnvironment',
@@ -188,6 +268,16 @@ _ENVIRONMENTSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_ENVIRONMENTREQUEST,
     output_type=_ACTIONRESPONSE,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='SendWinner',
+    full_name='EnvironmentService.SendWinner',
+    index=1,
+    containing_service=None,
+    input_type=_WINNERREQUEST,
+    output_type=_EMPTY,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),

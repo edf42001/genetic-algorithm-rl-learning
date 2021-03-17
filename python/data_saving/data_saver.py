@@ -21,7 +21,7 @@ class DataSaver:
 
     def create_new_date_folder(self):
         now = DataSaver.get_time_string()
-        path = self.folder + "/" + now
+        path = self.folder + "/run_statistics/" + now
         DataSaver.create_if_not_exist(path)
 
         self.data_folder = path
