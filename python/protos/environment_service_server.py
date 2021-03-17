@@ -9,13 +9,13 @@ from concurrent import futures
 import grpc
 import logging
 
-import rl_environment_data_pb2
-import rl_environment_data_pb2_grpc
+from protos.rl_environment_data_pb2 import ActionResponse, Empty
+from protos.rl_environment_data_pb2_grpc import EnvironmentService, add_EnvironmentServiceServicer_to_server
 
 from data_saving.data_saver import DataSaver
 
 
-class EnvironmentServiceImpl(rl_environment_data_pb2_grpc.EnvironmentService):
+class EnvironmentServiceImpl(EnvironmentService):
 
     def __init__(self, env_callback, winner_callback):
         self.env_callback = env_callback
@@ -25,7 +25,7 @@ class EnvironmentServiceImpl(rl_environment_data_pb2_grpc.EnvironmentService):
         action = None  # None indicates error
         try:
             action = self.env_callback(request)
-            return rl_environment_data_pb2.ActionResponse(action=action)
+            return ActionResponse(action=action)
         except Exception as e:
             traceback.print_exc()
             # Not returning anything will indicate to java
@@ -34,13 +34,13 @@ class EnvironmentServiceImpl(rl_environment_data_pb2_grpc.EnvironmentService):
     def SendWinner(self, request, context):
         try:
             self.winner_callback(request)
-            return rl_environment_data_pb2.Empty()
+            return Empty()
         except Exception as e:
             traceback.print_exc()
 
     def serve(self):
         server = grpc.server(futures.ThreadPoolExecutor(max_workers=5))
-        rl_environment_data_pb2_grpc.add_EnvironmentServiceServicer_to_server(self, server)
+        add_EnvironmentServiceServicer_to_server(self, server)
         server.add_insecure_port('[::]:50051')
         server.start()
         try:

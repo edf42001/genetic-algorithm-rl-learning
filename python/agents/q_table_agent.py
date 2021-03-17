@@ -125,9 +125,7 @@ class QTableAgent:
             # self.data_saver.write_line_to_rewards_file([self.total_epoch_reward])
             self.total_epoch_reward = 0
 
-            print("Episode over, restarting")
-            print("Last total reward: %.3f" % total_reward)
-            print("Epsilon: %.3f" % self.epsilon)
+            print("Episode over, last total reward: %.3f" % total_reward)
 
         return actions
 

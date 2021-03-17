@@ -35,7 +35,7 @@ public class EnvironmentServiceClient {
         // shut it down.
 
         // Passing Channels to code makes code easier to test and makes it easier to reuse Channels.
-        blockingStub = EnvironmentServiceGrpc.newBlockingStub(channel);
+        blockingStub = EnvironmentServiceGrpc.newBlockingStub(channel).withWaitForReady();
 
         // Create empty builder for data to be added to and sent
         messageBuilder = EnvironmentRequest.newBuilder();

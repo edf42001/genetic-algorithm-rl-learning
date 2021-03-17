@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-from environment_service_server import EnvironmentServiceImpl
+from protos.environment_service_server import EnvironmentServiceImpl
 
 from agents.q_table_agent import QTableAgent
 

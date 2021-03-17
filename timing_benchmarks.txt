@@ -1,0 +1,7 @@
+This document is to verify the effeciency of code:
+
+3/17/21:
+Basic Java setup, 2v2 agents, state consists of seeing in a 5x5 grid, with basic q_table python agent:
+
+109950 iterations in 86 seconds
+1278 iterations / s
