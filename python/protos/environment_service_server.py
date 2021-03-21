@@ -21,6 +21,8 @@ class EnvironmentServiceImpl(EnvironmentService):
         self.env_callback = env_callback
         self.winner_callback = winner_callback
 
+        self.server = None
+
     def SendEnvironment(self, request, context):
         action = None  # None indicates error
         try:
@@ -39,11 +41,15 @@ class EnvironmentServiceImpl(EnvironmentService):
             traceback.print_exc()
 
     def serve(self):
-        server = grpc.server(futures.ThreadPoolExecutor(max_workers=5))
-        add_EnvironmentServiceServicer_to_server(self, server)
-        server.add_insecure_port('[::]:50051')
-        server.start()
+        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=5))
+        add_EnvironmentServiceServicer_to_server(self, self.server)
+        self.server.add_insecure_port('[::]:50051')
+        self.server.start()
         try:
-            server.wait_for_termination()
+            self.server.wait_for_termination()
         except KeyboardInterrupt as e:
             print("Keyboard interrupt, shutting down server")
+
+    def stop(self):
+        # Stop server, wait for one second
+        self.server.stop(1)

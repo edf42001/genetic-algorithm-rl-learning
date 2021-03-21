@@ -13,8 +13,8 @@ class Agent:
     def save_to_file(self, folder):
         raise NotImplementedError(type(self).__name__ + " save_to_file method not implemented")
 
-    def load_from_file(self, folder):
-        raise NotImplementedError(type(self).__name__ + " load_from_file method not implemented")
+    def load_from_folder(self, folder):
+        raise NotImplementedError(type(self).__name__ + " load_from_folder method not implemented")
 
     def set_eval_mode(self, eval_mode):
         self.eval_mode = eval_mode

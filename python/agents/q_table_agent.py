@@ -1,6 +1,6 @@
 import numpy as np
-import pickle
 import json
+import time
 
 from agents.agent import Agent
 
@@ -25,6 +25,9 @@ class QTableAgent(Agent):
 
         # How many iterations this agent has been training for
         self.iterations = 0
+
+        # Keep track of the total elapsed time
+        self.start_time = time.time()
 
         self.total_epoch_reward = 0
 
@@ -140,11 +143,11 @@ class QTableAgent(Agent):
 
     def callback(self, request):
         """Simply pass the request to the corresponding handler"""
-        self.iterations += 1
-
         if self.eval_mode:
             return self.eval_mode_update(request)
         else:
+            # Only keep track of iterations when training
+            self.iterations += 1
             return self.learning_mode_update(request)
 
     def select_epsilon_action(self, state, epsilon):
@@ -162,13 +165,14 @@ class QTableAgent(Agent):
 
         config = dict()
         config["name"] = type(self).__name__
+        config["iterations"] = self.iterations
+        config["elapsed_time"] = time.time() - self.start_time
         config["epsilon"] = self.epsilon
         config["epsilon_decay"] = self.epsilon_decay
         config["discount_rate"] = self.discount_rate
         config["learning_rate"] = self.learning_rate
         config["team_spirit"] = self.team_spirit
         config["min_epsilon"] = self.min_epsilon
-        config["iterations"] = self.iterations
 
         with open(params_file, 'wb') as f:
             np.save(f, self.q_table)
@@ -176,14 +180,15 @@ class QTableAgent(Agent):
         with open(config_file, 'w') as f:
             json.dump(config, f)
 
-    def load_from_file(self, folder):
+    def load_from_folder(self, folder):
         config_file = folder + "/config.txt"
         params_file = folder + "/agent.npy"
 
         with open(params_file, 'rb') as f:
             self.q_table = np.load(f)
 
-        config = json.load(config_file)
+        with open(config_file, 'r') as f:
+            config = json.load(f)
 
         self.epsilon = config["epsilon"]
         self.epsilon_decay = config["epsilon_decay"]

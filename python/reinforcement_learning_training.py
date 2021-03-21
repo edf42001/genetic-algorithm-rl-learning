@@ -20,35 +20,47 @@ class RLTraining:
         self.agent = QTableAgent()
 
         # Create object to handle data saving
-        self.data_saver = DataSaver("saved_data")
+        self.data_saver = DataSaver("saved_runs")
 
         # Create a new folder for the current time
-        self.data_saver.create_new_date_folder()
-        self.data_saver.open_rewards_file()
+        self.data_saver.open_data_files()
 
+        # How many timesteps have occurred
         self.iterations = 0
+
+        # Stop after this many iterations
+        self.num_iterations = 200000
 
         self.start_time = time.time()
 
     def on_shutdown(self):
-        print("Closing rewards file")
-        self.data_saver.close_rewards_file()
-        print("Iterations, time")
+        print("Closing data files")
+        self.data_saver.close_data_files()
+        print("Iterations, time, iters/s")
         print(self.iterations)
         print(time.time() - self.start_time)
+        print(str(int(self.iterations / (time.time() - self.start_time))))
 
     def env_callback(self, request):
         self.iterations += 1
 
-        if self.iterations % 20000 == 0:
+        if (self.iterations < 20000 and (self.iterations + 1) % 4000 == 0) or \
+                (self.iterations < 100000 and (self.iterations + 1) % 10000 == 0) or \
+                (self.iterations + 1) % 30000 == 0:
             print("Saving agent to file")
             self.data_saver.save_agent_to_file(self.agent)
 
         # Pass the data to the agent, and return the actions returned
         return self.agent.callback(request)
 
-    # Do nothing
     def winner_callback(self, request):
+        # Record win history
+        self.data_saver.write_line_to_wins_file(request.winner)
+
+        if self.iterations > self.num_iterations:
+            # An empty state indicates the episode has ended
+            print("done")
+            agent.server.stop()
         return None
 
 

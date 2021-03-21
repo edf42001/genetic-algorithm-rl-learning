@@ -33,7 +33,7 @@ class RandomAgent(Agent):
         with open(config_file, 'w') as f:
             json.dump(config, f)
 
-    def load_from_file(self, folder):
+    def load_from_folder(self, folder):
         """Nothing to do"""
         pass
 

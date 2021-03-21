@@ -11,6 +11,7 @@ java/target
 
 # Saved data
 **/saved_data
+**/saved_runs
 
 # Don't need this file, it has way too many unit definitions in it
 java/data/Combat.xml
