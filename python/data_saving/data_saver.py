@@ -39,17 +39,24 @@ class DataSaver:
     def save_agent_to_file(self, agent):
         now = DataSaver.get_time_string()
         folder = self.folder + "/trueskill/reference_agents/" + now
+        folder = DataSaver.get_unique_folder_name(folder)
 
         DataSaver.create_if_not_exist(folder)
-        path = folder + "/" + "agent.p"
 
-        agent.save_to_file(path)
+        agent.save_to_file(folder)
 
     @staticmethod
     def get_time_string():
         # Formatted for use in file names
         return datetime.datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 
+    @staticmethod
+    def get_unique_folder_name(folder):
+        if not os.path.exists(folder):
+            return folder
 
+        i = 1
+        while os.path.exists(folder + "-" + str(i)):
+            i += 1
 
-
+        return folder + "-" + str(i)

@@ -39,7 +39,7 @@ class RLTraining:
     def env_callback(self, request):
         self.iterations += 1
 
-        if self.iterations % 20000 == 0:
+        if self.iterations % 1 == 0:
             print("Saving agent to file")
             self.data_saver.save_agent_to_file(self.agent)
 

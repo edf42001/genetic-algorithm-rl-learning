@@ -203,7 +203,7 @@ public class ReinforcementLearningAgent extends Agent {
 
     public float findLastReward(Integer unitID, State.StateView state, History.HistoryView history)
     {
-        float stepReward = -0.001f;
+        float stepReward = -0.01f;
         float distanceReward = 0.0009f;
         float damageReward = 0.005f;
         float enemyDamageReward = -0.004f;
@@ -252,7 +252,7 @@ public class ReinforcementLearningAgent extends Agent {
     public float findFinalLastReward(Integer unitID, State.StateView state, History.HistoryView history)
     {
         float reward = 0;
-        float stepReward = -0.001f;
+        float stepReward = -0.01f;
         float damageReward = 0.005f;
         float enemyDamageReward = -0.004f;
 //        float enemyDamageReward = -0.00f;
@@ -421,7 +421,7 @@ public class ReinforcementLearningAgent extends Agent {
 
         int winner = -1;
         // Win, lose, or tie
-        // Here "player0" is green, but thats player id 1, so do 1 - to swap
+        // Here "player0" is green, but that's player id 1, so do 1 - to swap
         if (enemyUnitIDs.size() == 0)
         {
             winner = 1 - playernum;

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import glob
 import sys
+import time
 
 import trueskill
 
@@ -33,6 +34,12 @@ class TrueSkillTournament:
 
         # True if player 1 is a sepia agent, not another one of our agents
         self.playing_against_sepia = True
+
+        # How many game steps have occcured
+        self.iterations = 0
+
+        # Start time of run
+        self.start_time = time.time()
 
         # Load agents from disk
         self.load_agents("../saved_data/trueskill/reference_agents")
@@ -98,12 +105,17 @@ class TrueSkillTournament:
                 print(self.sepia_rating)
                 print("Win stats")
                 print(self.win_stats)
+                print("Iterations, time")
+                print(self.iterations)
+                print(time.time() - self.start_time)
                 sys.exit(0)
 
             # Print who is playing right now
             # print("Now playing version %d vs %d" % (self.active_agents[0], self.active_agents[1]))
 
     def env_callback(self, request):
+        self.iterations += 1
+
         # Which player sent this data
         player_id = request.player_id
 

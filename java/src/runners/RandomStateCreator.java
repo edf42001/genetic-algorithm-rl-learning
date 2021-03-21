@@ -50,10 +50,10 @@ public class RandomStateCreator implements StateCreator {
 
     public void randomizeUnitLocations(State state, int playernum)
     {
-        int xCenter = 7;
+        int xCenter = 4;
         int xWidth = 6;
         int yCenter = state.getYExtent() / 2;
-        int yWidth = 8;
+        int yWidth = (int) (0.4 * state.getYExtent());
 
         for (Integer unitID : state.getUnits(playernum).keySet())
         {

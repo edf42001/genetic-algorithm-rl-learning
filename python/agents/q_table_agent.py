@@ -1,9 +1,14 @@
 import numpy as np
 import pickle
+import json
+
+from agents.agent import Agent
 
 
-class QTableAgent:
+class QTableAgent(Agent):
     def __init__(self):
+        super().__init__()
+
         self.q_table = np.zeros((7, 7, 7, 7, 7, 7, 5))
         self.last_actions = dict()
         self.last_states = dict()
@@ -13,9 +18,13 @@ class QTableAgent:
         self.discount_rate = 0.95  # Discount future rewards. Time horizon = 1 / (1 - rate)
         self.learning_rate = 0.05  # Learning rate
         self.team_spirit = 0  # How much rewards are shared
+        self.min_epsilon = 0.05  # When to stop epsilon decreasing
 
         # The agent only takes actions in eval mode, and doesn't train
         self.eval_mode = False
+
+        # How many iterations this agent has been training for
+        self.iterations = 0
 
         self.total_epoch_reward = 0
 
@@ -112,7 +121,7 @@ class QTableAgent:
                 self.last_actions[unit_id] = action
                 self.last_states[unit_id] = state
 
-        if self.epsilon > 0.05:
+        if self.epsilon > self.min_epsilon:
             self.epsilon *= self.epsilon_decay
 
         if episode_over:
@@ -131,6 +140,8 @@ class QTableAgent:
 
     def callback(self, request):
         """Simply pass the request to the corresponding handler"""
+        self.iterations += 1
+
         if self.eval_mode:
             return self.eval_mode_update(request)
         else:
@@ -145,19 +156,42 @@ class QTableAgent:
 
         return action
 
-    def save_to_file(self, file):
-        data = dict()
-        data["name"] = "QTableAgent"
-        data["q_table"] = self.q_table
+    def save_to_file(self, folder):
+        config_file = folder + "/config.txt"
+        params_file = folder + "/agent.npy"
 
-        with open(file, 'wb') as f:
-            pickle.dump(data, f)
+        config = dict()
+        config["name"] = type(self).__name__
+        config["epsilon"] = self.epsilon
+        config["epsilon_decay"] = self.epsilon_decay
+        config["discount_rate"] = self.discount_rate
+        config["learning_rate"] = self.learning_rate
+        config["team_spirit"] = self.team_spirit
+        config["min_epsilon"] = self.min_epsilon
+        config["iterations"] = self.iterations
 
-    def load_from_file(self, file):
-        with open(file, 'rb') as f:
-            data = pickle.load(f)
+        with open(params_file, 'wb') as f:
+            np.save(f, self.q_table)
 
-            self.q_table = data["q_table"]
+        with open(config_file, 'w') as f:
+            json.dump(config, f)
+
+    def load_from_file(self, folder):
+        config_file = folder + "/config.txt"
+        params_file = folder + "/agent.npy"
+
+        with open(params_file, 'rb') as f:
+            self.q_table = np.load(f)
+
+        config = json.load(config_file)
+
+        self.epsilon = config["epsilon"]
+        self.epsilon_decay = config["epsilon_decay"]
+        self.discount_rate = config["discount_rate"]
+        self.learning_rate = config["learning_rate"]
+        self.team_spirit = config["team_spirit"]
+        self.min_epsilon = config["min_epsilon"]
+        self.iterations = config["iterations"]
 
     def set_eval_mode(self, eval_mode):
         self.eval_mode = eval_mode
