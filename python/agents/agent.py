@@ -10,10 +10,10 @@ class Agent:
         """Receives data from the environment, do learning and return actions here """
         raise NotImplementedError(type(self).__name__ + " callback method not implemented")
 
-    def save_to_file(self, file):
+    def save_to_file(self, folder):
         raise NotImplementedError(type(self).__name__ + " save_to_file method not implemented")
 
-    def load_from_file(self, file):
+    def load_from_file(self, folder):
         raise NotImplementedError(type(self).__name__ + " load_from_file method not implemented")
 
     def set_eval_mode(self, eval_mode):

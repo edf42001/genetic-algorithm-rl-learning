@@ -4,6 +4,7 @@ import sys
 from protos.environment_service_server import EnvironmentServiceImpl
 
 from agents.q_table_agent import QTableAgent
+from agents.random_agent import RandomAgent
 
 import numpy as np
 import os.path
@@ -39,7 +40,7 @@ class RLTraining:
     def env_callback(self, request):
         self.iterations += 1
 
-        if self.iterations % 1 == 0:
+        if self.iterations % 20000 == 0:
             print("Saving agent to file")
             self.data_saver.save_agent_to_file(self.agent)
 
