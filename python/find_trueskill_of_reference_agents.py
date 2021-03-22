@@ -36,7 +36,7 @@ class TrueSkillTournament:
         self.trials = 0
 
         # How many total trials to do before we are done
-        self.num_trials = 20
+        self.num_trials = 40
 
         # True if player 1 is a sepia agent, not another one of our agents
         self.playing_against_sepia = not self_play

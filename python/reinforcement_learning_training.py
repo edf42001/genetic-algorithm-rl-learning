@@ -29,7 +29,7 @@ class RLTraining:
         self.iterations = 0
 
         # Stop after this many iterations
-        self.num_iterations = 200000
+        self.num_iterations = 180010
 
         self.start_time = time.time()
 
@@ -44,8 +44,7 @@ class RLTraining:
     def env_callback(self, request):
         self.iterations += 1
 
-        if (self.iterations < 20000 and (self.iterations + 1) % 4000 == 0) or \
-                (self.iterations < 100000 and (self.iterations + 1) % 10000 == 0) or \
+        if (self.iterations < 100000 and (self.iterations + 1) % 15000 == 0) or \
                 (self.iterations + 1) % 30000 == 0:
             print("Saving agent to file")
             self.data_saver.save_agent_to_file(self.agent)

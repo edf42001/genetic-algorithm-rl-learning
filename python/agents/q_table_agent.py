@@ -17,7 +17,7 @@ class QTableAgent(Agent):
         self.epsilon_decay = 0.99995
         self.discount_rate = 0.95  # Discount future rewards. Time horizon = 1 / (1 - rate)
         self.learning_rate = 0.05  # Learning rate
-        self.team_spirit = 0  # How much rewards are shared
+        self.team_spirit = 0.0  # How much rewards are shared
         self.min_epsilon = 0.05  # When to stop epsilon decreasing
 
         # The agent only takes actions in eval mode, and doesn't train
@@ -61,6 +61,8 @@ class QTableAgent(Agent):
         total_reward = sum([a.last_action_reward for a in request.agent_data])
         self.total_epoch_reward += total_reward
 
+        num_units_alive = len(request.agent_data)
+
         # Actions to be returned
         actions = []
 
@@ -102,6 +104,10 @@ class QTableAgent(Agent):
             # Use tuple to index high dimensional q table
             indices = tuple(self.last_states[unit_id] + [self.last_actions[unit_id]])
             current_q = self.q_table[indices]
+
+            # Implement team spirit: % of reward to be shared among agents
+            # reward for unit = (1 - team_spirit)*reward + team_spirit * total_avg_reward
+            reward = reward + self.team_spirit * (total_reward / num_units_alive - reward)
 
             # Do the q update with the Bellman equation
             new_q = current_q + self.learning_rate * (reward + self.discount_rate * max_future_q - current_q)
