@@ -430,8 +430,9 @@ public class ReinforcementLearningAgent extends Agent {
         {
             winner = 1 - enemyPlayerNum;
         }
-        client.sendWinner(winner, 1 - playernum);
+
         client.sendData(1 - playernum);
+        client.sendWinner(winner, 1 - playernum);
 
         //DO a for int i in range to send reward for all?
         // Give winning reward to all units or jus the won that made the kill?
