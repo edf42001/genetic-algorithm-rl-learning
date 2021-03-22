@@ -5,6 +5,7 @@ from protos.environment_service_server import EnvironmentServiceImpl
 
 from agents.q_table_agent import QTableAgent
 from agents.random_agent import RandomAgent
+from agents.q_table_exploration_agent import QTableExplorationAgent
 
 import numpy as np
 import os.path
@@ -17,7 +18,7 @@ class RLTraining:
     def __init__(self):
         self.server = EnvironmentServiceImpl(self.env_callback, self.winner_callback)
 
-        self.agent = QTableAgent()
+        self.agent = QTableExplorationAgent()
 
         # Create object to handle data saving
         self.data_saver = DataSaver("saved_runs")

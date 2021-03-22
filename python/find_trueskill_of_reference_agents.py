@@ -10,6 +10,7 @@ import trueskill
 
 from protos.environment_service_server import EnvironmentServiceImpl
 from agents.q_table_agent import QTableAgent
+from agents.q_table_exploration_agent import QTableExplorationAgent
 from data_saving.data_saver import DataSaver
 
 
@@ -166,7 +167,7 @@ class TrueSkillTournament:
             sys.exit("Error: folder not found " + os.path.abspath(agents_folder))
 
         for agent_folder in sorted(glob.glob(agents_folder + "/*")):
-            agent = QTableAgent()
+            agent = QTableExplorationAgent()
             agent.load_from_folder(agent_folder)
 
             # Set agents to eval mode so they don't learn, just run
