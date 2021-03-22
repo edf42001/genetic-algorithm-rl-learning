@@ -25,6 +25,7 @@ a reinforcement learning algorithm that learns to play the video game DOTA 2.
 
 
 ## SEPIA
+
 The SEPIA environment consists of a grid of squares that can be occupied by a unit, a resource, or be empty.
 Units can move, gather resources, build buildings, and attack other units. Each unit can carry a different amount of resources,
 has a different attack range, attack damage, and health. Resources consist of gold and wood. These can be used to construct new buildings,
@@ -60,6 +61,7 @@ Due to the large observation space and random nature of the algorithm, these age
 I abandoned the genetic algorithm in favor of reinforcement learning. 
 
 #### Reinforcement Learning
+
 In reinforcement learning (RL), the agent observes its environment each time step and produces an action.
 It then receives a reward or penalty for the action. For example, in combat, killing an enemy unit would have a high reward.
 Over time, the agent learns to maximize the expected rewards by choosing the best actions. There are different methods of
@@ -67,6 +69,7 @@ implementing an observation->actions policy for RL agents. Two common ones are a
 neural network.
 
 ## Genetic Algorithm Implementation
+
 As the GA was the first method investigated, gRPC was not integrated into the project yet. Thus, instead of being able to use python's
 many machine learning packages, a very basic neural network implementation was written from scratch in Java.
 There were only three different layer types, a Dense layer, Recurrent layer, and LSTM layer.
@@ -95,8 +98,40 @@ Fitness was based on average distance to the enemy (to encourage encounters wher
 and amount of enemy units killed.
 
 #### Results
+
 A population size of around 400 was used, and training for 500 epochs would take around 3 minutes.
 However, agents were usually only able to kill only one of the enemy units, no more. It was at this time that development
-pivoted to reinforcement learning. 
+pivoted to reinforcement learning. Thus, the rest of this paper shall discuss the reinforcement learning implementation.
 
 ## Reinforcement Learning Implementation
+
+A few RL algorithms were tried. Details are listed below. 
+
+
+### Q Table Agent
+
+The first agent created was an agent that used a Q table. A Q Table stores the learned utility of every state action pair.
+An optimal agent then simply takes the action with the maximum utility in the current state. This agent was tried first
+for its simplicity, however the number of discrete states increases exponentially with the complexity of the environment,
+making the Q table agent usable only in the smallest of base cases.
+
+##### Observation Space
+
+The Q table agent plays only in 2 vs 2 matches. The state consists of 6 numbers, these are, the relative x and y coordinates
+to our fellow friendly agent and the two enemy agents. However, on a 19x13 board, there are ~(19*13) ^ 3 discrete states,
+or 15,000,000. Thus, units can only see the exact position of another unit in a 5x5 grid around them, or, if the other unit
+is not in that grid, a value stating which direction the unit is in. This reduces the state size to ~28^3 = 22,000.
+
+### gRPC Implementation
+
+gRPC is used to allow SEPIA, a Java program, to communicate with the control code, in Python.
+Currently, the gRPC server is in Python, and custom Java code that interfaces with SEPIA is the client.
+This may seem backwards, as SEPIA is where the environment is actually located.
+However, attempts to implement the server in Java and client in Python ran into issues
+with synchronizing, as SEPIA runs on a separate timer and did not wait for the Python client to make requests.
+
+The gRPC service is very simple. A message is sent to the control code containing the current state of
+the SEPIA environment, and the response contains the actions each unit should perform.
+During self play, both agents in the environment interact with the same Python server. The Python code
+differentiates between requests using the player_id field. 
+
