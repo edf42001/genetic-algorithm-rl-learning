@@ -167,7 +167,7 @@ class TrueSkillTournament:
             sys.exit("Error: folder not found " + os.path.abspath(agents_folder))
 
         for agent_folder in sorted(glob.glob(agents_folder + "/*")):
-            agent = QTableExplorationAgent()
+            agent = QTableAgent()
             agent.load_from_folder(agent_folder)
 
             # Set agents to eval mode so they don't learn, just run

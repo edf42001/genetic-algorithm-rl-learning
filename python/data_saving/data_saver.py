@@ -58,6 +58,8 @@ class DataSaver:
 
         agent.save_to_file(folder)
 
+        return folder
+
     @staticmethod
     def get_time_string():
         # Formatted for use in file names

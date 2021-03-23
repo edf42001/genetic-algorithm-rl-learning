@@ -18,7 +18,7 @@ class RLTrainingEnemyAgent:
     def __init__(self):
         self.server = EnvironmentServiceImpl(self.env_callback, self.winner_callback)
 
-        self.agent = QTableExplorationAgent()
+        self.agent = QTableAgent()
 
         # Create object to handle data saving
         self.data_saver = DataSaver("saved_runs")
@@ -38,9 +38,8 @@ class RLTrainingEnemyAgent:
         print("Closing data files")
         self.data_saver.close_data_files()
         print("Iterations, time, iters/s")
-        print(self.iterations)
-        print(time.time() - self.start_time)
-        print(str(int(self.iterations / (time.time() - self.start_time))))
+        dt = time.time() - self.start_time
+        print("%d, %.2f, %d" % (self.iterations, dt, int(self.iterations / dt)))
 
     def env_callback(self, request):
         self.iterations += 1
@@ -56,6 +55,7 @@ class RLTrainingEnemyAgent:
     def winner_callback(self, request):
         # Record win history
         self.data_saver.write_line_to_wins_file(request.winner)
+        print("Episode over, winner " + str(request.winner))
 
         if self.iterations > self.num_iterations:
             print("Done, stopping server")
