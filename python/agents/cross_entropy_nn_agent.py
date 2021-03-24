@@ -19,6 +19,12 @@ class CrossEntropyNNAgent(Agent):
         # The agent currently being tested
         self.active_agent = 0
 
+        # How many runs have been done with current agent this episode
+        self.trials = 0
+
+        # How many runs to do per agent (larger sample size per agent)
+        self.num_trials = 1
+
         # Parameters of distribution of weights. Will be learned to converge on good values
         self.u = np.zeros(shape=(5, 16))
         self.std = np.ones(shape=(5, 16)) * 0.35
@@ -36,6 +42,9 @@ class CrossEntropyNNAgent(Agent):
 
         # How many iterations this agent has been training for
         self.iterations = 0
+
+        # How many epochs we have been training for, an epoch being every agent going num_trials times
+        self.epochs = 0
 
         # Keep track of the total elapsed time
         self.start_time = time.time()
@@ -101,14 +110,24 @@ class CrossEntropyNNAgent(Agent):
         if self.eval_mode:
             return
 
+        # Increment trial
+        self.trials += 1
+
+        # If we aren't done with trials, nothing left to do in this function
+        if self.trials != self.num_trials:
+            return
+
+        # If we are, move to next agent and reset trials
         self.active_agent += 1
+        self.trials = 0
 
         # If all agents have been tested
         if self.active_agent == self.pop_size:
-            print("Generating new population")
+            self.epochs += 1
+            print("Epoch %d: Generating new population" % self.epochs)
 
             # Select a percentage of best agents to reproduce
-            best_agents = self.population_scores.argsort()[::-1][:int(self.pop_size * self.elite_percent)]
+            best_agents = self.population_scores.argsort()[::-1][:max(1, int(self.pop_size * self.elite_percent))]
             # print(best_agents)
             # print(self.population[best_agents].shape)
 
@@ -142,6 +161,8 @@ class CrossEntropyNNAgent(Agent):
         config["iterations"] = self.iterations
         config["elapsed_time"] = time.time() - self.start_time
         config["std_noise"] = 0
+        config["num_trials"] = self.num_trials
+        config["epochs"] = self.epochs
 
         with open(params_file, 'wb') as f:
             np.savez(f, u=self.u, std=self.std, data_u=self.data_normalizer.u, data_var=self.data_normalizer.var)
@@ -171,6 +192,8 @@ class CrossEntropyNNAgent(Agent):
             config = json.load(f)
             self.iterations = config["iterations"]
             self.data_normalizer.iterations = self.iterations
+            self.num_trials = config["num_trials"]
+            self.epochs = config["epochs"]
 
         # After loading, generate a random population from the data
         self.population = np.random.normal(self.u, self.std, (self.pop_size, 5, 16))
