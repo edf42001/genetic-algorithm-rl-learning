@@ -6,6 +6,7 @@ from protos.environment_service_server import EnvironmentServiceImpl
 from agents.q_table_agent import QTableAgent
 from agents.random_agent import RandomAgent
 from agents.q_table_exploration_agent import QTableExplorationAgent
+from agents.cross_entropy_nn_agent import CrossEntropyNNAgent
 
 import numpy as np
 import os.path
@@ -18,7 +19,7 @@ class RLTrainingEnemyAgent:
     def __init__(self):
         self.server = EnvironmentServiceImpl(self.env_callback, self.winner_callback)
 
-        self.agent = QTableAgent()
+        self.agent = CrossEntropyNNAgent()
 
         # Create object to handle data saving
         self.data_saver = DataSaver("saved_runs")
@@ -50,12 +51,15 @@ class RLTrainingEnemyAgent:
             self.data_saver.save_agent_to_file(self.agent)
 
         # Pass the data to the agent, and return the actions returned
-        return self.agent.callback(request)
+        return self.agent.env_callback(request)
 
     def winner_callback(self, request):
         # Record win history
         self.data_saver.write_line_to_wins_file(request.winner)
         print("Episode over, winner " + str(request.winner))
+
+        # Tell the agent the episode has ended
+        self.agent.winner_callback(request)
 
         if self.iterations > self.num_iterations:
             print("Done, stopping server")

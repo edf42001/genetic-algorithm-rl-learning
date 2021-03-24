@@ -147,7 +147,7 @@ class QTableAgent(Agent):
 
         return actions
 
-    def callback(self, request):
+    def env_callback(self, request):
         """Simply pass the request to the corresponding handler"""
         if self.eval_mode:
             return self.eval_mode_update(request)

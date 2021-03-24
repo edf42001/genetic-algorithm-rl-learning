@@ -1,7 +1,13 @@
 This document is to verify the effeciency of code:
+Note: Speed highly dependent on computer battery, or whether computer is plugged in
+
+3/23/21:
+CrossEntropy Agent, 2v2, uses neural network state type. Computer not plugged in
+991 iterations / 2
+
 
 3/17/21:
-Basic Java setup, 2v2 agents, state consists of seeing in a 5x5 grid, with basic q_table python agent:
+Basic Java setup, 2v2 agents, state consists of seeing in a 5x5 grid, with basic q_table python agent.
+Computer not plugged in
 
-109950 iterations in 86 seconds
 1278 iterations / s

@@ -79,9 +79,9 @@ class RLTrainingSelfPlay:
         # Make sure to use the right agent
         if request.player_id == 0:
             self.iterations += 1  # Both player's iterations are the same so only count one
-            return self.main_agent.callback(request)
+            return self.main_agent.env_callback(request)
         else:
-            return self.other_agent.callback(request)
+            return self.other_agent.env_callback(request)
 
     def winner_callback(self, request):
         # This is called twice, only do things for one of the times

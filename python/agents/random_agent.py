@@ -13,7 +13,7 @@ class RandomAgent(Agent):
         # The agent only takes actions in eval mode, and doesn't train
         self.eval_mode = False
 
-    def callback(self, request):
+    def env_callback(self, request):
         """Do a random action if this isn't the terminal step"""
         # An empty state indicates the episode as ended
         episode_over = len(request.agent_data[0].state) == 0

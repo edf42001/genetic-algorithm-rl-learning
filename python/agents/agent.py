@@ -6,9 +6,13 @@ class Agent:
         # The agent only takes actions in eval mode, and doesn't train
         self.eval_mode = False
 
-    def callback(self, request):
+    def env_callback(self, request):
         """Receives data from the environment, do learning and return actions here """
-        raise NotImplementedError(type(self).__name__ + " callback method not implemented")
+        raise NotImplementedError(type(self).__name__ + " env callback method not implemented")
+
+    def winner_callback(self, request):
+        """Receives data from the environment, do learning and return actions here """
+        raise NotImplementedError(type(self).__name__ + " winner callback method not implemented")
 
     def save_to_file(self, folder):
         raise NotImplementedError(type(self).__name__ + " save_to_file method not implemented")

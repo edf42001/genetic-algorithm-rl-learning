@@ -14,6 +14,7 @@ import protos.EnvironmentServiceClient;
 
 import java.io.*;
 import java.sql.Time;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,8 @@ public class ReinforcementLearningAgent extends Agent {
 
     // Our grpc client
     private final EnvironmentServiceClient client;
+
+    private final boolean useNNState = true;
 
     public ReinforcementLearningAgent(int player, String[] args) {
         super(player);
@@ -85,6 +88,107 @@ public class ReinforcementLearningAgent extends Agent {
 
     @Override
     public void loadPlayerData(InputStream inputStream) {}
+
+    /**
+     * Returns the observation state for a unit, in a form to be used with neural networks
+     * @param unitID The unit observing
+     * @param state Stateview
+     * @return An array with all state variables
+     */
+    public int[] observeNNState(Integer unitID, State.StateView state)
+    {
+        // Total units, but don't count ourselves
+//        int numUnits = myUnitIDs.size() + enemyUnitIDs.size() - 1;
+        int numUnits = 3; // Always allocate space for 3 other units, but set their slots to 0 if they don't exist
+
+        // x, y, distance, health, inRange
+        int unitStateSize = 5;
+
+        // For ourselves, we just see health
+        int ourStateSize = 1;
+
+        int stateSize = numUnits * unitStateSize + ourStateSize;
+        int[] env = new int[stateSize];
+
+        // Fill in default values of -1 million, so that dead units that don't fill in data can be differentiated
+        // from a data value of 0
+        Arrays.fill(env, -1000000);
+
+        // Count where we are in the env array
+        int index = 0;
+
+        Unit.UnitView us = state.getUnit(unitID);
+        int ourX = us.getXPosition();
+        int ourY = us.getYPosition();
+        int ourHealth = us.getHP();
+
+        // Add our health
+        env[index] = ourHealth;
+        index = ourStateSize;
+
+        // Loop through friendly units, get data
+        for (Integer id : myUnitIDs)
+        {
+            // Don't count ourselves
+            if (!id.equals(unitID))
+            {
+                Unit.UnitView unit = state.getUnit(id);
+                int dx = unit.getXPosition() - ourX;
+                int dy = ourY - unit.getYPosition(); // Flip y so that down is negative
+                int health = unit.getHP();
+                int dist = Math.abs(dx) + Math.abs(dy);
+                // TODO Range of footmen is one, use UnitTemplateView to get range
+                boolean inRange = Math.max(Math.abs(dx), Math.abs(dy)) <= 1;
+
+                // Units expect to be player 1, in the left side of the field
+                // Flip their state if they are on the other side of the field
+                // so they get data they are used to
+                if (playernum == 0)
+                {
+                    dx *= -1;
+                    dy *= -1;
+                }
+
+                env[index] = dx;
+                env[index+1] = dy;
+                env[index+2] = dist;
+                env[index+3] = health;
+                env[index+4] = inRange ? 1 : 0;
+            }
+        }
+
+        // 1 for our health, 1 friendly unit state size puts index here now
+        index = 1 * unitStateSize + ourStateSize;
+
+        // Exact same for enemies
+        for (Integer id : enemyUnitIDs) {
+            Unit.UnitView unit = state.getUnit(id);
+            int dx = unit.getXPosition() - ourX;
+            int dy = ourY - unit.getYPosition(); // Flip y so that down is negative
+            int health = unit.getHP();
+            int dist = Math.abs(dx) + Math.abs(dy);
+            boolean inRange = Math.max(Math.abs(dx), Math.abs(dy)) <= 1;
+
+            // Units expect to be player 1, in the left side of the field
+            // Flip their state if they are on the other side of the field
+            // so they get data they are used to
+            if (playernum == 0)
+            {
+                dx *= -1;
+                dy *= -1;
+            }
+
+            env[index] = dx;
+            env[index + 1] = dy;
+            env[index + 2] = dist;
+            env[index + 3] = health;
+            env[index + 4] = inRange ? 1 : 0;
+            index += unitStateSize;
+        }
+
+        return env;
+    }
+
 
     /**
      * The relative location of another unit consists of 2 values:
@@ -204,10 +308,10 @@ public class ReinforcementLearningAgent extends Agent {
     public float findLastReward(Integer unitID, State.StateView state, History.HistoryView history)
     {
         float stepReward = -0.01f;
-        float distanceReward = 0.0009f;
-        float damageReward = 0.005f;
-        float enemyDamageReward = -0.004f;
-//        float enemyDamageReward = -0.00f;
+        float distanceReward = 0.009f;
+        float damageReward = 0.05f;
+//        float enemyDamageReward = -0.004f;
+        float enemyDamageReward = -0.00f;
 
         float deathReward = 1.0f;
 
@@ -253,11 +357,13 @@ public class ReinforcementLearningAgent extends Agent {
     {
         float reward = 0;
         float stepReward = -0.01f;
-        float damageReward = 0.005f;
-        float enemyDamageReward = -0.004f;
-//        float enemyDamageReward = -0.00f;
+        float damageReward = 0.05f;
+//        float enemyDamageReward = -0.004f;
+        float enemyDamageReward = -0.00f;
         float winReward = 1.0f;
-        float loseReward = -0.8f;
+//        float loseReward = -0.8f;
+        float loseReward = 0.0f;
+
 
         // Punishment for taking too long
         reward += stepReward;
@@ -379,7 +485,13 @@ public class ReinforcementLearningAgent extends Agent {
         // Add them to the message to be sent to python
         for (Integer unitID : myUnitIDs)
         {
-            int[] unitObservation = observeState(unitID, state);
+            int [] unitObservation;
+            if (useNNState) {
+                unitObservation = observeNNState(unitID, state);
+            } else {
+                unitObservation = observeState(unitID, state);
+            }
+
             float lastReward = findLastReward(unitID, state, history);
             client.addEnvironmentState(unitObservation, lastReward, unitID);
         }

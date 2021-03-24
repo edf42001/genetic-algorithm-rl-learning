@@ -11,6 +11,7 @@ import trueskill
 from protos.environment_service_server import EnvironmentServiceImpl
 from agents.q_table_agent import QTableAgent
 from agents.q_table_exploration_agent import QTableExplorationAgent
+from agents.cross_entropy_nn_agent import CrossEntropyNNAgent
 from data_saving.data_saver import DataSaver
 
 
@@ -111,7 +112,7 @@ class TrueSkillTournament:
             # Stop if we have reached the trial limit
             if self.trials >= self.num_trials:
                 self.save_results()
-                sys.exit(0)
+                self.server.stop()
 
             # Print who is playing right now
             # print("Now playing version %d vs %d" % (self.active_agents[0], self.active_agents[1]))
@@ -129,7 +130,7 @@ class TrueSkillTournament:
         if not episode_over:
             # Get the current active agent controlled by the player whose data was sent
             agent = self.agents[self.active_agents[player_id]]
-            actions = agent.callback(request)
+            actions = agent.env_callback(request)
             return actions
 
     def update_ratings(self, agent0_wins, draw):
@@ -167,7 +168,7 @@ class TrueSkillTournament:
             sys.exit("Error: folder not found " + os.path.abspath(agents_folder))
 
         for agent_folder in sorted(glob.glob(agents_folder + "/*")):
-            agent = QTableAgent()
+            agent = CrossEntropyNNAgent()
             agent.load_from_folder(agent_folder)
 
             # Set agents to eval mode so they don't learn, just run
@@ -223,5 +224,4 @@ if __name__ == "__main__":
     # For now, by default, we will do tournaments against the enemy sepia agent, not ourselves
     tournament = TrueSkillTournament(run_folder, self_play)
     tournament.server.serve()
-
-
+    print("Server stopped, shutting down")
