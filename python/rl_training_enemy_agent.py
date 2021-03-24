@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import sys
+
+import time
 
 from protos.environment_service_server import EnvironmentServiceImpl
 
@@ -8,11 +9,7 @@ from agents import RandomAgent
 from agents import QTableExplorationAgent
 from agents import CrossEntropyNNAgent
 
-import numpy as np
-import os.path
-
 from data_saving.data_saver import DataSaver
-import time
 
 
 class RLTrainingEnemyAgent:
@@ -63,7 +60,8 @@ class RLTrainingEnemyAgent:
 
         if self.iterations > self.num_iterations:
             print("Done, stopping server")
-            agent.server.stop()
+            self.server.stop()
+
         return None
 
 
