@@ -157,6 +157,10 @@ class QTableExplorationAgent(Agent):
 
         return actions
 
+    def winner_callback(self, request):
+        """Noop"""
+        pass
+
     def select_action(self, state):
         # Selects the action with highest utility
         return np.argmax(self.exploration_function(self.q_table[tuple(state)], self.n_visited[tuple(state)]))

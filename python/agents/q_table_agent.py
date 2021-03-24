@@ -165,6 +165,10 @@ class QTableAgent(Agent):
 
         return action
 
+    def winner_callback(self, request):
+        """Noop"""
+        pass
+
     def save_to_file(self, folder):
         config_file = folder + "/config.txt"
         params_file = folder + "/agent.npy"

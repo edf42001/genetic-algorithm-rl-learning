@@ -25,6 +25,10 @@ class RandomAgent(Agent):
             # actions are from 0 - 4. 1 action per agent
             return np.random.randint(5, size=len(request.agent_data))
 
+    def winner_callback(self, request):
+        """Noop"""
+        pass
+
     def save_to_file(self, folder):
         config_file = folder + "/config.txt"
         config = dict()

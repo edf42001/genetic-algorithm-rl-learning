@@ -12,6 +12,7 @@ from protos.environment_service_server import EnvironmentServiceImpl
 from agents import QTableAgent
 from agents import QTableExplorationAgent
 from agents import CrossEntropyNNAgent
+from agents import load_agent
 from data_saving.data_saver import DataSaver
 
 
@@ -168,8 +169,7 @@ class TrueSkillTournament:
             sys.exit("Error: folder not found " + os.path.abspath(agents_folder))
 
         for agent_folder in sorted(glob.glob(agents_folder + "/*")):
-            agent = CrossEntropyNNAgent()
-            agent.load_from_folder(agent_folder)
+            agent = load_agent(agent_folder)
 
             # Set agents to eval mode so they don't learn, just run
             agent.set_eval_mode(True)
