@@ -9,9 +9,9 @@ import numpy as np
 import trueskill
 
 from protos.environment_service_server import EnvironmentServiceImpl
-from agents.q_table_agent import QTableAgent
-from agents.q_table_exploration_agent import QTableExplorationAgent
-from agents.cross_entropy_nn_agent import CrossEntropyNNAgent
+from agents import QTableAgent
+from agents import QTableExplorationAgent
+from agents import CrossEntropyNNAgent
 from data_saving.data_saver import DataSaver
 
 

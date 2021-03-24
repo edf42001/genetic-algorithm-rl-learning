@@ -1,7 +1,7 @@
 import numpy as np
 import json
 
-from agents.agent import Agent
+from agents import Agent
 
 
 class RandomAgent(Agent):

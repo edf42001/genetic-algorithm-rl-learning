@@ -2,7 +2,7 @@ import numpy as np
 import time
 import json
 
-from agents.agent import Agent
+from agents import Agent
 from data_saving.data_normalizer import DataNormalizer
 
 

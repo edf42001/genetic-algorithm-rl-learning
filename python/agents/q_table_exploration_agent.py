@@ -2,7 +2,7 @@ import numpy as np
 import json
 import time
 
-from agents.agent import Agent
+from agents import Agent
 
 
 class QTableExplorationAgent(Agent):
