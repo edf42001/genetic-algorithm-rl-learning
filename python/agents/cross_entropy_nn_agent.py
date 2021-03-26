@@ -22,14 +22,22 @@ class CrossEntropyNNAgent(Agent):
         # How many runs have been done with current agent this episode
         self.trials = 0
 
-        # How many runs to do per agent (larger sample size per agent)
+        # How many runs to do per agent per epoch (larger sample size per agent)
         self.num_trials = 1
 
-        # Parameters of distribution of weights. Will be learned to converge on good values
-        self.u = np.zeros(shape=(5, 16))
-        self.std = np.ones(shape=(5, 16)) * 0.35
-        # Randomly generated population of weights matrix. Multiplies state vectors to get values for each of 5 actions
-        self.population = np.random.normal(self.u, self.std, (self.pop_size, 5, 16))
+        # Layer sizes in the neural network. Must contain at least two layers, for input and output size
+        self.layers = [16, 16, 5]
+
+        # Parameters of distribution of weights for each layer. Will be learned to converge on good values
+        self.u = []
+        self.std = []
+        self.initialize_u_std()
+
+        # Randomly generated population of weights matrix. Multiplies state vectors to get values for each of 5 actions.
+        # Each item in the list is a (pop_size, in_size, out_size), matrix, which can be indexed along the first axis
+        # to get that layer's weight matrix for each agent in the population.
+        self.population = []
+        self.generate_new_population()
 
         # Scores for each member of population
         self.population_scores = np.zeros(self.pop_size)
@@ -49,7 +57,8 @@ class CrossEntropyNNAgent(Agent):
         # Keep track of the total elapsed time
         self.start_time = time.time()
 
-        np.set_printoptions(precision=3, floatmode='fixed', linewidth=1000)
+        # Print arrays nicer
+        np.set_printoptions(precision=3, floatmode='fixed', linewidth=1000, suppress=True)
 
     def env_callback(self, request):
         self.iterations += 1
@@ -86,13 +95,19 @@ class CrossEntropyNNAgent(Agent):
             # print(state)
             state = self.data_normalizer.normalize_data(state)
             # print(state)
-            result = self.population[self.active_agent].dot(state)
+
+            # Forward pass state through network:
+            result = state
+            for layers in self.population:
+                result = layers[self.active_agent].dot(state)
+
             # print(result)
+            # Softmax activation and random sample
             softmax = self.softmax(result)
+            action = self.random_weighted_index(softmax)
+
             # print(softmax)
             # print()
-
-            action = self.random_weighted_index(softmax)
 
             actions += [action]
 
@@ -128,20 +143,15 @@ class CrossEntropyNNAgent(Agent):
 
             # Select a percentage of best agents to reproduce
             best_agents = self.population_scores.argsort()[::-1][:max(1, int(self.pop_size * self.elite_percent))]
-            # print(best_agents)
-            # print(self.population[best_agents].shape)
-
-            # Update mu and std based on the elite population
-            self.u = np.mean(self.population[best_agents], axis=0)
-            self.std = np.std(self.population[best_agents], axis=0)
 
             # print(self.population_scores)
             print(self.population_scores[best_agents])
-            # Add a bit to std to prevent early convergence
-            self.std += 0.0
+
+            # Find new param distribution from elite agents
+            self.update_u_std(best_agents)
 
             # Generate new population
-            self.population = np.random.normal(self.u, self.std, (self.pop_size, 5, 16))
+            self.generate_new_population()
 
             # Reset scores
             self.population_scores = np.zeros(self.pop_size)
@@ -151,6 +161,60 @@ class CrossEntropyNNAgent(Agent):
 
             print(self.u)
             print(self.std)
+
+    def initialize_u_std(self):
+        """Initialize parameter's mu and std matrices"""
+
+        for i in range(1, len(self.layers)):
+            # Due to method of array multiplication, shape is (out_size, in_size)
+            shape = (self.layers[i], self.layers[i-1])
+            self.u.append(np.zeros(shape=shape))  # Start with 0 mean
+            self.std.append(np.ones(shape=shape) * 0.35)  # Start with 0.35 std
+
+    def generate_new_population(self):
+        """Generates a new random population from the parameter's mu and std"""
+
+        self.population = []  # Empty current population
+
+        # Add a layer for every layer in the network
+        for i in range(1, len(self.layers)):
+            shape = (self.layers[i], self.layers[i-1])
+
+            # For this layer, create a random population of weights with the given u and std
+            self.population.append(np.random.normal(self.u[i-1], self.std[i-1], (self.pop_size, *shape)))
+
+    def update_u_std(self, best_agents):
+        """Updates the parameter distribution mu and standard deviation by averaging the fittest agents"""
+        # Reset u and std
+        self.u = []
+        self.std = []
+
+        # Fill each layer's param back in by averaging the best agent's weights
+        for i in range(len(self.layers) - 1):
+            # Update mu and std based on the elite population
+            self.u.append(np.mean(self.population[i][best_agents], axis=0))
+            self.std.append(np.std(self.population[i][best_agents], axis=0))
+
+            # Add a bit to std to prevent early convergence
+            self.std[i] += np.fmax(0, 0.01 - 1E-4 * self.epochs)
+
+    def softmax(self, x):
+        """Compute softmax values for each sets of scores in x."""
+        e_x = np.exp(x - np.max(x))
+        return e_x / e_x.sum()
+
+    def random_weighted_index(self, x):
+        return np.random.choice(np.arange(x.size), 1, p=x)[0]
+
+    def set_eval_mode(self, eval_mode):
+        self.eval_mode = eval_mode
+
+        # When eval mode is set, remove randomness from parameters
+        # Zero out std dev and just use mu, then regenerate population
+        for std in self.std:
+            std *= 0
+
+        self.generate_new_population()
 
     def save_to_file(self, folder):
         config_file = folder + "/config.txt"
@@ -163,37 +227,48 @@ class CrossEntropyNNAgent(Agent):
         config["std_noise"] = 0
         config["num_trials"] = self.num_trials
         config["epochs"] = self.epochs
+        config["layers"] = self.layers
 
+        # Create a layers dict to save each layer's params to a numpy savez
+        layers = dict()
+        for i in range(len(self.layers) - 1):
+            layers["u_" + str(i)] = self.u[i]
+            layers["std_" + str(i)] = self.std[i]
+
+        # Save arrays
         with open(params_file, 'wb') as f:
-            np.savez(f, u=self.u, std=self.std, data_u=self.data_normalizer.u, data_var=self.data_normalizer.var)
+            np.savez(f, **layers, data_u=self.data_normalizer.u, data_var=self.data_normalizer.var)
 
+        # Save other info
         with open(config_file, 'w') as f:
             json.dump(config, f)
-
-    def softmax(self, x):
-        """Compute softmax values for each sets of scores in x."""
-        e_x = np.exp(x - np.max(x))
-        return e_x / e_x.sum()
-
-    def random_weighted_index(self, x):
-        return np.random.choice(np.arange(x.size), 1, p=x)[0]
 
     def load_from_folder(self, folder):
         config_file = folder + "/config.txt"
         params_file = folder + "/agent.npy"
 
-        with np.load(params_file, 'rb') as data:
-            self.u = data["u"]
-            self.std = data["std"]
-            self.data_normalizer.u = data["data_u"]
-            self.data_normalizer.var = data["data_var"]
-
         with open(config_file, 'r') as f:
             config = json.load(f)
             self.iterations = config["iterations"]
-            self.data_normalizer.iterations = self.iterations
             self.num_trials = config["num_trials"]
             self.epochs = config["epochs"]
+            self.layers = config["layers"]
+            # self.std_noise = config["std_noise"]
+
+        with np.load(params_file, 'rb') as data:
+            # Reset u and std
+            self.u = []
+            self.std = []
+
+            # Load each layer's u and std params
+            for i in range(len(self.layers) - 1):
+                self.u.append(data["u_" + str(i)])
+                self.std.append(data["std_" + str(i)])
+
+            # Load our data normalizer's info
+            self.data_normalizer.u = data["data_u"]
+            self.data_normalizer.var = data["data_var"]
+            self.data_normalizer.iterations = self.iterations
 
         # After loading, generate a random population from the data
-        self.population = np.random.normal(self.u, self.std, (self.pop_size, 5, 16))
+        self.generate_new_population()
