@@ -48,6 +48,10 @@ The "f" stands for Footman, a simple unit with an attack range of 1 square.
 ## Methods
 
 I have looked into two machine learning methods for this project. These were genetic algorithms and Reinforcement learning.
+In all methods used, every unit on the board is controlled by the same policy. For example, all units would use a copy
+of the same neural network weights. Independent and different actions arise because each unit observes different parts
+of the state from its location, and has a different internal state (for example, health, or the unit's attack range)
+
 
 #### Genetic Algorithms
 
@@ -103,26 +107,112 @@ A population size of around 400 was used, and training for 500 epochs would take
 However, agents were usually only able to kill only one of the enemy units, no more. It was at this time that development
 pivoted to reinforcement learning. Thus, the rest of this paper shall discuss the reinforcement learning implementation.
 
+
 ## Reinforcement Learning Implementation
 
-A few RL algorithms were tried. Details are listed below. 
+A few RL algorithms were tried. Details are listed below.
 
 
-### Q Table Agent
+## Q Table Agent
 
 The first agent created was an agent that used a Q table. A Q Table stores the learned utility of every state action pair.
 An optimal agent then simply takes the action with the maximum utility in the current state. This agent was tried first
 for its simplicity, however the number of discrete states increases exponentially with the complexity of the environment,
 making the Q table agent usable only in the smallest of base cases.
 
-##### Observation Space
+#### Observation Space
 
 The Q table agent plays only in 2 vs 2 matches. The state consists of 6 numbers, these are, the relative x and y coordinates
 to our fellow friendly agent and the two enemy agents. However, on a 19x13 board, there are ~(19*13) ^ 3 discrete states,
 or 15,000,000. Thus, units can only see the exact position of another unit in a 5x5 grid around them, or, if the other unit
 is not in that grid, a value stating which direction the unit is in. This reduces the state size to ~28^3 = 22,000.
 
-### gRPC Implementation
+#### Action Space
+The agent can pick one of five actions: move up, down, left or right, and attack.
+Attacking always attacks the closest enemy. This may be changed later.
+
+#### Results
+
+The Q Table agent was succesfully able to coordinate both units to attack the same enemy agent at the same time,
+(which human observations have determined leads to a high chance of success in the 2v2 setup). However, this was not
+tested with random unit starting locations. It is possible the Q Table agent would perform worse in this scenario.
+
+
+## Cross Entropy Agent
+
+The cross entropy agent is a policy based RL algorithm similar to a genetic algorithm. The policy is represented by some
+parameters, θ. The policy acts on the observation space to produce some actions. We define the distribution of possible
+parameters with a mean and standard deviation. Generate a population of policies from this distribution.
+Then, run episodes to measure the performance of each policy. Take the top policies, and find the average and standard
+deviation of their policy parameters. In this way, the distribution of θ evolves to produce policies that get better
+results.
+
+In addition, when averaging the elite's parameters, we add a small, decaying value to the standard deviation,
+which helps prevent early convergence. 
+
+#### Policy
+
+The policy of choice was chosen to be a fully connected neural network. The number and size of hidden layers can be
+varied, but the input and output sizes have to be consistent with the observation and action space. The CE algorithm
+thus learns the optimal weights of the network.
+
+#### Observation Space
+
+Because the CE agent uses a neural network architecture instead of a Q table, we can have many more observation variables.
+Each unit observes:
+* Its own health
+
+Then for every other unit:
+* x and y distance to that unit
+* total distance to that unit
+* unit's health
+* is the unit in attack range?
+
+Integers and floats are interpreted as is, boolean values are converted to 0 or 1. 
+
+The agent keeps a running total of the mean and standard deviation of every input variable, which it uses to normalize
+the input data. The input data is then clipped to +- 5 after normalization.
+
+#### Action Space
+
+A unit can take five actions: moving in the 4 cardinal directions, or attacking the nearest enemy.
+The action to take is selected by a weighted probability of the softmax output of the network.
+
+#### Rewards
+
+Agents are given rewards for actions they perform. The fitness of an agent is the sum of the rewards each of its units
+receives at every time step for one game. Rewards were chosen to encourage getting near and quickly killing the enemy.
+The rewards are not perfectly symmetric because it was believed this could cause agents to simply not attack, for fear
+of taking damage. If dealing damage is weighted more heavily than taking damage, an agent that attacks will on average
+gain a positive reward. The following table lists actions and their associated rewards.
+
+* Every step: -0.03
+* 1 / (distance to enemy): 0.009 
+* Deal damage: 0.05
+* Take damage: -0.03
+* Win: 1.0
+
+#### Results and Future Work
+A CE agent with 1 hidden layer of size 8 was trained for 170 epochs, or 660,000 iterations. It achieved a win rate of
+89% in the 2v2 against the default CombatAgentEnemy, which corresponds to a trueskill of 37.
+
+This graph shows the trueskill of the CE agent at certain iterations. Training took ~5 minutes.
+
+![Trueskill of CE Agent](readme_images/trueskill_of_ce_agent.png "Trueskill of CE Agent")
+
+The agent employ a few neat strategies. Notably, because the CombatAgentEnemy is very basic, and always tries to move
+closer and attack, the CE agent simply waits in place for the enemy to approach it. This allows it to get an attack in
+when the enemy moves into range, giving it an advantage in the battle. The friendly units often wait for each other
+to catch up and move in a group to the right, which allows them to gang up on the enemy units. However, the waiting for
+the enemy strategy can fail and cause a unit to wait right out of range of an enemy unit, because that enemy unit is
+attacking its partner and will not move towards it. Simply moving one space would allow the unit to attack, greatly
+increasing their chance of winning. Possible remedies to help encourage this behavior in the future would be different
+input observations. For example, a state history, which would allow the agent to know if enemy units had moved last turn.
+A different network architecture, such as an LSTM, could also resolve this problem, but may be difficult to work with the
+CE algorithm.
+
+
+## gRPC Implementation
 
 gRPC is used to allow SEPIA, a Java program, to communicate with the control code, in Python.
 Currently, the gRPC server is in Python, and custom Java code that interfaces with SEPIA is the client.

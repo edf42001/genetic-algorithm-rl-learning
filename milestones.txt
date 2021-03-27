@@ -1,0 +1,8 @@
+Milestones:
+
+3/26/21: Cross Entropy Agent with decaying added std_dev noise, 16 x 8 x 5 dense neural net achieves 89% win rate,
+5% lose rate against 2v2 CombatAgentEnemy. Tends to get stuck with second unit not attacking,
+thus wasting potential damage.
+
+3/11/21: Q Table agent achieves essential perfect win rate on 2v2 CombatAgentEnemy,
+but starting positions are not randomized.
