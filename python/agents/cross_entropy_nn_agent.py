@@ -1,4 +1,5 @@
 import numpy as np
+import random
 import time
 import json
 
@@ -206,11 +207,12 @@ class CrossEntropyNNAgent(Agent):
 
     def softmax(self, x):
         """Compute softmax values for each sets of scores in x."""
-        e_x = np.exp(x - np.max(x))
-        return e_x / e_x.sum()
+        e_x = np.exp(x)
+        return e_x / np.sum(e_x)
 
     def random_weighted_index(self, x):
-        return np.random.choice(np.arange(x.size), 1, p=x)[0]
+        """Picks an action at random, weighted by value"""
+        return random.choices(np.arange(x.size), x)[0]
 
     def entropy_of_probabilities(self, x):
         return -np.sum(x * np.log2(x))

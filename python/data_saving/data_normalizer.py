@@ -35,9 +35,11 @@ class DataNormalizer:
     def normalize_data(self, x):
         # Normalize data, set values of dead units (indicated with -1E6) to 0
         # Clip to ensure all values are reasonable
-        normalized = np.divide((x - self.u), np.sqrt(self.var), where=(self.var != 0))
+        normalized = np.divide(x - self.u, np.sqrt(self.var), where=(self.var != 0))
         normalized[x == self.noop_value] = 0
-        normalized = np.clip(normalized, -self.clip, self.clip)
+        normalized[normalized > self.clip] = self.clip
+        normalized[normalized < -self.clip] = -self.clip
+
         return normalized
 
 
