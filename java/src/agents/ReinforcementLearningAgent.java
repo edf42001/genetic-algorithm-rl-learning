@@ -307,11 +307,10 @@ public class ReinforcementLearningAgent extends Agent {
 
     public float findLastReward(Integer unitID, State.StateView state, History.HistoryView history)
     {
-        float stepReward = -0.01f;
+        float stepReward = -0.03f;
         float distanceReward = 0.009f;
         float damageReward = 0.05f;
-//        float enemyDamageReward = -0.004f;
-        float enemyDamageReward = -0.00f;
+        float enemyDamageReward = -0.03f;
 
         float deathReward = 1.0f;
 
@@ -356,14 +355,12 @@ public class ReinforcementLearningAgent extends Agent {
     public float findFinalLastReward(Integer unitID, State.StateView state, History.HistoryView history)
     {
         float reward = 0;
-        float stepReward = -0.01f;
+        float stepReward = -0.03f;
         float damageReward = 0.05f;
-//        float enemyDamageReward = -0.004f;
-        float enemyDamageReward = -0.00f;
-        float winReward = 1.0f;
-//        float loseReward = -0.8f;
-        float loseReward = 0.0f;
+        float enemyDamageReward = -0.03f;
 
+        float winReward = 1.0f;
+        float loseReward = 0.0f;
 
         // Punishment for taking too long
         reward += stepReward;
