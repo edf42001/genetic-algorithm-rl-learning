@@ -26,7 +26,10 @@ class CrossEntropyNNAgent(Agent):
         self.num_trials = 1
 
         # Layer sizes in the neural network. Must contain at least two layers, for input and output size
-        self.layers = [16, 16, 5]
+        self.layers = [16, 8, 5]
+
+        # Weight given to entropy of action probabilities bonus
+        self.entropy_weight = 0.01
 
         # Parameters of distribution of weights for each layer. Will be learned to converge on good values
         self.u = []
@@ -99,15 +102,18 @@ class CrossEntropyNNAgent(Agent):
             # Forward pass state through network:
             result = state
             for layers in self.population:
-                result = layers[self.active_agent].dot(state)
+                result = layers[self.active_agent].dot(result)
 
-            # print(result)
             # Softmax activation and random sample
             softmax = self.softmax(result)
             action = self.random_weighted_index(softmax)
 
+            # print(result)
             # print(softmax)
             # print()
+
+            # Add entropy bonus to agent's fitness
+            self.population_scores[self.active_agent] += self.entropy_of_probabilities(softmax) * self.entropy_weight
 
             actions += [action]
 
@@ -169,7 +175,7 @@ class CrossEntropyNNAgent(Agent):
             # Due to method of array multiplication, shape is (out_size, in_size)
             shape = (self.layers[i], self.layers[i-1])
             self.u.append(np.zeros(shape=shape))  # Start with 0 mean
-            self.std.append(np.ones(shape=shape) * 0.35)  # Start with 0.35 std
+            self.std.append(np.ones(shape=shape) * 0.7)  # Start with 0.7 std
 
     def generate_new_population(self):
         """Generates a new random population from the parameter's mu and std"""
@@ -196,7 +202,7 @@ class CrossEntropyNNAgent(Agent):
             self.std.append(np.std(self.population[i][best_agents], axis=0))
 
             # Add a bit to std to prevent early convergence
-            self.std[i] += np.fmax(0, 0.01 - 1E-4 * self.epochs)
+            self.std[i] += np.fmax(0, 0.025 - 2E-4 * self.epochs)
 
     def softmax(self, x):
         """Compute softmax values for each sets of scores in x."""
@@ -205,6 +211,9 @@ class CrossEntropyNNAgent(Agent):
 
     def random_weighted_index(self, x):
         return np.random.choice(np.arange(x.size), 1, p=x)[0]
+
+    def entropy_of_probabilities(self, x):
+        return -np.sum(x * np.log2(x))
 
     def set_eval_mode(self, eval_mode):
         self.eval_mode = eval_mode
