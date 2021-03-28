@@ -40,6 +40,8 @@ class IndividualAgentTest:
         # Who won?
         winner = request.winner
 
+        print("Episode over, winner " + str(winner))
+
         # Record the win, loss, or draw
         self.win_stats[winner] += 1
 
