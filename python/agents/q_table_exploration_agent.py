@@ -211,3 +211,5 @@ class QTableExplorationAgent(Agent):
 
         self.n_visited = np.ones((7, 7, 7, 7, 7, 7, 5)) * 10  # Count of how many times a state, action has been visited
 
+    def should_save_to_folder(self):
+        return self.iterations % 45000 == 0

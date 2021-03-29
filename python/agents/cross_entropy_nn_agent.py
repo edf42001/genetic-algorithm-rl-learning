@@ -61,6 +61,11 @@ class CrossEntropyNNAgent(Agent):
         # Keep track of the total elapsed time
         self.start_time = time.time()
 
+        # How often to save, in epochs. Because winner callback is called multiple times per epoch, need to check if
+        # we saved that epoch already
+        self.save_freq = 15
+        self.should_save = False
+
         # Print arrays nicer
         np.set_printoptions(precision=3, floatmode='fixed', linewidth=1000, suppress=True)
 
@@ -132,6 +137,9 @@ class CrossEntropyNNAgent(Agent):
         if self.eval_mode:
             return
 
+        # Because winner callback is called multiple times per epoch, only save upon the transition to new epoch
+        self.should_save = False
+
         # Increment trial
         self.trials += 1
 
@@ -146,6 +154,10 @@ class CrossEntropyNNAgent(Agent):
         # If all agents have been tested
         if self.active_agent == self.pop_size:
             self.epochs += 1
+
+            # Set should save upon transition to new epoch
+            self.should_save = (self.epochs % self.save_freq == 0)
+
             print("Epoch %d: Generating new population" % self.epochs)
 
             # Select a percentage of best agents to reproduce
@@ -283,3 +295,6 @@ class CrossEntropyNNAgent(Agent):
 
         # After loading, generate a random population from the data
         self.generate_new_population()
+
+    def should_save_to_folder(self):
+        return self.should_save

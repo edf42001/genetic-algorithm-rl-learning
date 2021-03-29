@@ -42,11 +42,6 @@ class RLTrainingEnemyAgent:
     def env_callback(self, request):
         self.iterations += 1
 
-        if (self.iterations < 100000 and (self.iterations + 1) % 25000 == 0) or \
-                (self.iterations + 1) % 45000 == 0:
-            print("Saving agent to file")
-            self.data_saver.save_agent_to_file(self.agent)
-
         # Pass the data to the agent, and return the actions returned
         return self.agent.env_callback(request)
 
@@ -58,6 +53,10 @@ class RLTrainingEnemyAgent:
         # Tell the agent the episode has ended
         self.agent.winner_callback(request)
 
+        if self.agent.should_save_to_folder():
+            print("Saving agent to file")
+            self.data_saver.save_agent_to_file(self.agent)
+
         if self.iterations > self.num_iterations:
             print("Done, stopping server")
             self.server.stop()
@@ -66,6 +65,6 @@ class RLTrainingEnemyAgent:
 
 
 if __name__ == "__main__":
-    agent = RLTrainingEnemyAgent()
-    agent.server.serve()
-    agent.on_shutdown()
+    trainer = RLTrainingEnemyAgent()
+    trainer.server.serve()
+    trainer.on_shutdown()

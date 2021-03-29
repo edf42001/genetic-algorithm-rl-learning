@@ -13,6 +13,8 @@ class RandomAgent(Agent):
         # The agent only takes actions in eval mode, and doesn't train
         self.eval_mode = False
 
+        self.saved = False
+
     def env_callback(self, request):
         """Do a random action if this isn't the terminal step"""
         # An empty state indicates the episode as ended
@@ -43,3 +45,8 @@ class RandomAgent(Agent):
 
     def set_eval_mode(self, eval_mode):
         self.eval_mode = eval_mode
+
+    def should_save_to_folder(self):
+        # Only save once because this is just a placeholder
+        self.saved = True
+        return not self.saved

@@ -1,4 +1,8 @@
 class Agent:
+    """
+    The base Agent class. Has an env_callback that receives the current state and last reward, and returns an action,
+    and an end of episode winner_callback that indicates the episode has ended.
+    """
     def __init__(self):
         # How many iterations this agent has been training for
         self.iterations = 0
@@ -22,3 +26,6 @@ class Agent:
 
     def set_eval_mode(self, eval_mode):
         self.eval_mode = eval_mode
+
+    def should_save_to_folder(self):
+        raise NotImplementedError(type(self).__name__ + " should_save_to_folder method not implemented")

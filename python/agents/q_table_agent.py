@@ -210,3 +210,6 @@ class QTableAgent(Agent):
 
     def set_eval_mode(self, eval_mode):
         self.eval_mode = eval_mode
+
+    def should_save_to_folder(self):
+        return self.iterations % 45000 == 0
