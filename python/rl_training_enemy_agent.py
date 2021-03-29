@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
 import time
+import argparse
+import sys
+import glob
+import os
 
 from protos.environment_service_server import EnvironmentServiceImpl
 
@@ -8,15 +12,33 @@ from agents import QTableAgent
 from agents import RandomAgent
 from agents import QTableExplorationAgent
 from agents import CrossEntropyNNAgent
+from agents import load_agent
 
 from data_saving.data_saver import DataSaver
 
 
+def get_restore_point(run_folder):
+    """
+    Gets the last saved agent folder from a run folder
+    Assumes agent folders are in alphabetical order of date
+    """
+    agents_folder = "saved_runs/" + run_folder + "/agents"
+
+    if not os.path.exists(agents_folder):
+        sys.exit("Error: folder not found " + os.path.abspath(agents_folder))
+
+    return sorted(glob.glob(agents_folder + "/*"))[-1]
+
+
 class RLTrainingEnemyAgent:
-    def __init__(self):
+    """
+    Receives the game callbacks and passes them to the agent
+    Handles saving and stopping the training
+    """
+    def __init__(self, agent):
         self.server = EnvironmentServiceImpl(self.env_callback, self.winner_callback)
 
-        self.agent = CrossEntropyNNAgent()
+        self.agent = agent
 
         # Create object to handle data saving
         self.data_saver = DataSaver("saved_runs")
@@ -64,7 +86,30 @@ class RLTrainingEnemyAgent:
         return None
 
 
-if __name__ == "__main__":
-    trainer = RLTrainingEnemyAgent()
+def main(args):
+    if args.restore_from:
+        agent = load_agent(get_restore_point(args.restore_from))
+    else:
+        agent = CrossEntropyNNAgent(args.trials, args.hidden_dim,
+                                    args.entropy_bonus, args.save_freq)
+
+    trainer = RLTrainingEnemyAgent(agent)
     trainer.server.serve()
     trainer.on_shutdown()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("Training Enemy Agent")
+    parser.add_argument("--epochs", type=int, default=200)
+    parser.add_argument("--trials", type=int, default=1)
+    parser.add_argument("--save-freq", type=int, default=15)
+    parser.add_argument("--hidden-dim", type=int, nargs="*", default=[8])
+    parser.add_argument("--entropy-bonus", type=float, default=0.01)
+    parser.add_argument("--restore-from", type=str, default=None)
+
+    known_args, unknown_args = parser.parse_known_args()
+
+    print(known_args)
+    print(unknown_args)
+
+    main(known_args)

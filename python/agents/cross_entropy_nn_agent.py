@@ -8,7 +8,7 @@ from data_saving.data_normalizer import DataNormalizer
 
 
 class CrossEntropyNNAgent(Agent):
-    def __init__(self):
+    def __init__(self, trials=1, hidden_dim=[8], entropy_bonus=0.01, save_freq=15):
         super().__init__()
 
         # Number of agents in population
@@ -17,6 +17,8 @@ class CrossEntropyNNAgent(Agent):
         # Number of the best to select to average for the next population
         self.elite_percent = 0.2
 
+        print("trials " + str(trials))
+
         # The agent currently being tested
         self.active_agent = 0
 
@@ -24,13 +26,15 @@ class CrossEntropyNNAgent(Agent):
         self.trials = 0
 
         # How many runs to do per agent per epoch (larger sample size per agent)
-        self.num_trials = 1
+        self.num_trials = trials
 
         # Layer sizes in the neural network. Must contain at least two layers, for input and output size
-        self.layers = [16, 8, 5]
+        self.layers = [16]
+        self.layers.extend(hidden_dim)
+        self.layers.append(5)
 
         # Weight given to entropy of action probabilities bonus
-        self.entropy_weight = 0.01
+        self.entropy_weight = entropy_bonus
 
         # Parameters of distribution of weights for each layer. Will be learned to converge on good values
         self.u = []
@@ -63,7 +67,7 @@ class CrossEntropyNNAgent(Agent):
 
         # How often to save, in epochs. Because winner callback is called multiple times per epoch, need to check if
         # we saved that epoch already
-        self.save_freq = 15
+        self.save_freq = save_freq
         self.should_save = False
 
         # Print arrays nicer
