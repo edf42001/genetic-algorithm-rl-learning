@@ -4,7 +4,7 @@ import time
 import json
 
 from agents import Agent
-from data_saving.data_normalizer import DataNormalizer
+from common.data_normalizer import DataNormalizer
 
 
 class CrossEntropyNNAgent(Agent):
@@ -47,7 +47,7 @@ class CrossEntropyNNAgent(Agent):
         self.population_scores = np.zeros(self.pop_size)
 
         # Helps us normalize input data to network
-        self.data_normalizer = DataNormalizer()
+        self.data_normalizer = DataNormalizer(shape=self.layers[0])
 
         # The agent only takes actions in eval mode, and doesn't train
         self.eval_mode = False
@@ -65,6 +65,12 @@ class CrossEntropyNNAgent(Agent):
         # we saved that epoch already
         self.save_freq = 15
         self.should_save = False
+
+        # List of all observations vectors seen in an epoch
+        self.obs = []
+
+        # Win rate of agents per epoch
+        self.win_stats = [0, 0]
 
         # Print arrays nicer
         np.set_printoptions(precision=3, floatmode='fixed', linewidth=1000, suppress=True)
@@ -85,13 +91,14 @@ class CrossEntropyNNAgent(Agent):
         if episode_over:
             return None
 
-        # Update data normalizer before we do any processing
+        # Update observation list with obs from all units
         for data in request.agent_data:
-            self.data_normalizer.record_data(np.array(data.state, dtype='float64'))
-            # print(np.array(data.state, dtype='float64'))
-            # print(self.data_normalizer.u)
-            # print(self.data_normalizer.var)
-            # print()
+            self.obs.append(data.state)
+
+        # Update running mean and std of observations for normalizing
+        if not self.eval_mode:
+            self.data_normalizer.record_data(np.array(self.obs))
+            self.obs = []
 
         # Request contains, for each agent:
         # the current state of the world as a result of the last action
@@ -260,7 +267,7 @@ class CrossEntropyNNAgent(Agent):
 
         # Save arrays
         with open(params_file, 'wb') as f:
-            np.savez(f, **layers, data_u=self.data_normalizer.u, data_var=self.data_normalizer.var)
+            np.savez(f, **layers, data_u=self.data_normalizer.mean, data_var=self.data_normalizer.var)
 
         # Save other info
         with open(config_file, 'w') as f:
@@ -289,9 +296,9 @@ class CrossEntropyNNAgent(Agent):
                 self.std.append(data["std_" + str(i)])
 
             # Load our data normalizer's info
-            self.data_normalizer.u = data["data_u"]
+            self.data_normalizer.mean = data["data_u"]
             self.data_normalizer.var = data["data_var"]
-            self.data_normalizer.iterations = self.iterations
+            self.data_normalizer.count = self.iterations
 
         # After loading, generate a random population from the data
         self.generate_new_population()
