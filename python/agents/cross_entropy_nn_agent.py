@@ -32,6 +32,10 @@ class CrossEntropyNNAgent(Agent):
         # Weight given to entropy of action probabilities bonus
         self.entropy_weight = 0.01
 
+        # Parameters that control adding noise to std dev of policy params
+        self.std_noise = 0.01
+        self.std_noise_decay = 5E-5
+
         # Parameters of distribution of weights for each layer. Will be learned to converge on good values
         self.u = []
         self.std = []
@@ -69,9 +73,6 @@ class CrossEntropyNNAgent(Agent):
         # List of all observations vectors seen in an epoch
         self.obs = []
 
-        # Win rate of agents per epoch
-        self.win_stats = [0, 0]
-
         # Print arrays nicer
         np.set_printoptions(precision=3, floatmode='fixed', linewidth=1000, suppress=True)
 
@@ -94,11 +95,6 @@ class CrossEntropyNNAgent(Agent):
         # Update observation list with obs from all units
         for data in request.agent_data:
             self.obs.append(data.state)
-
-        # Update running mean and std of observations for normalizing
-        if not self.eval_mode:
-            self.data_normalizer.record_data(np.array(self.obs))
-            self.obs = []
 
         # Request contains, for each agent:
         # the current state of the world as a result of the last action
@@ -149,6 +145,10 @@ class CrossEntropyNNAgent(Agent):
 
         # Increment trial
         self.trials += 1
+
+        # Update running mean and std of observations, for normalizing
+        self.data_normalizer.record_data(np.array(self.obs))
+        self.obs = []
 
         # If we aren't done with trials, nothing left to do in this function
         if self.trials != self.num_trials:
@@ -222,7 +222,7 @@ class CrossEntropyNNAgent(Agent):
             self.std.append(np.std(self.population[i][best_agents], axis=0))
 
             # Add a bit to std to prevent early convergence
-            self.std[i] += np.fmax(0, 0.025 - 2E-4 * self.epochs)
+            self.std[i] += np.fmax(0, self.std_noise - self.std_noise_decay * self.epochs)
 
     def softmax(self, x):
         """Compute softmax values for each sets of scores in x."""
