@@ -28,9 +28,11 @@ class RLTrainingEnemyAgent:
         self.iterations = 0
 
         # Stop after this many iterations
-        self.num_iterations = 180010
+        self.num_iterations = 680010
 
         self.start_time = time.time()
+
+        self.win_stats = [0, 0]
 
     def on_shutdown(self):
         print("Closing data files")
@@ -42,12 +44,16 @@ class RLTrainingEnemyAgent:
     def env_callback(self, request):
         self.iterations += 1
 
+        if self.iterations % 10000 == 0:
+            self.data_saver.write_line_to_wins_file(self.win_stats[0] / sum(self.win_stats))
+            self.win_stats = [0, 0]
+
         # Pass the data to the agent, and return the actions returned
         return self.agent.env_callback(request)
 
     def winner_callback(self, request):
+        self.win_stats[request.winner] += 1
         # Record win history
-        self.data_saver.write_line_to_wins_file(request.winner)
         print("Episode over, winner " + str(request.winner))
 
         # Tell the agent the episode has ended

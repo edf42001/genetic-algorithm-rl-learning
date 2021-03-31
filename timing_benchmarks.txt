@@ -1,9 +1,20 @@
 This document is to verify the effeciency of code:
 Note: Speed highly dependent on computer battery, or whether computer is plugged in
 
+3/30/21:
+Update DataNormalizer to use batches of obs. CrossEntropy Agent, 2v2, computer plugged in.
+Commit hash
+
+1900 iterations / s
+
+3/30/21:
+CrossEntropy Agent, 2v2, uses neural network state type. Computer plugged in, after some code effeciencies improved
+Commit hash 0d287aed33df5ec23a5338a3ce892be760798ce8
+1670 iterations / s
+
 3/23/21:
 CrossEntropy Agent, 2v2, uses neural network state type. Computer not plugged in
-991 iterations / 2
+991 iterations / s
 
 
 3/17/21:
