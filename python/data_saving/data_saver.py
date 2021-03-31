@@ -44,6 +44,7 @@ class DataSaver:
     def write_line_to_wins_file(self, winner):
         """Used to record win loss tie record"""
         self.wins_file.write(str(winner) + "\n")
+        self.wins_file.flush()
 
     def close_data_files(self):
         self.rewards_file.close()

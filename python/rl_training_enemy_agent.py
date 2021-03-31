@@ -44,6 +44,10 @@ class RLTrainingEnemyAgent:
     def env_callback(self, request):
         self.iterations += 1
 
+        if self.iterations % 10000 == 0:
+            self.data_saver.write_line_to_wins_file(self.win_stats[0] / sum(self.win_stats))
+            self.win_stats = [0, 0]
+
         # Pass the data to the agent, and return the actions returned
         return self.agent.env_callback(request)
 
@@ -54,10 +58,6 @@ class RLTrainingEnemyAgent:
 
         # Tell the agent the episode has ended
         self.agent.winner_callback(request)
-
-        if self.iterations % 10000 == 0:
-            self.data_saver.write_line_to_wins_file(self.win_stats[0] / sum(self.win_stats))
-            self.win_stats = [0, 0]
 
         if self.agent.should_save_to_folder():
             print("Saving agent to file")
