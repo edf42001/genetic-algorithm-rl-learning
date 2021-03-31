@@ -92,19 +92,20 @@ class CrossEntropyNNAgent(Agent):
         if episode_over:
             return None
 
-        # Update observation list with obs from all units
-        for data in request.agent_data:
-            self.obs.append(data.state)
-
         # Request contains, for each agent:
         # the current state of the world as a result of the last action
         # and the reward for the last action
         for data in request.agent_data:
+            # Update observation list with obs from all units
+            self.obs.append(data.state)
+
+            # Convert state to np for processing
             state = np.array(data.state, dtype='float64')
             reward = data.last_action_reward
             unit_id = data.unit_id
 
             # print(state)
+            # Normalize state for NN
             state = self.data_normalizer.normalize_data(state)
             # print(state)
 

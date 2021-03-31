@@ -1,10 +1,9 @@
-This document is to verify the effeciency of code:
+This document is to verify the efficiency of code:
 Note: Speed highly dependent on computer battery, or whether computer is plugged in
 
 3/30/21:
 Update DataNormalizer to use batches of obs. CrossEntropy Agent, 2v2, computer plugged in.
-Commit hash
-
+Commit hash 63c6cceb09ee011037ada094ca410c09bf3bbf00
 1900 iterations / s
 
 3/30/21:

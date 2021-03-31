@@ -11,6 +11,7 @@ a reinforcement learning algorithm that learns to play the video game DOTA 2.
 
 ## Table of Contents
 * [Reinforcement Learning and Genetic Algorithms](#reinforcement-learning-and-genetic-algorithms)
+    * [Table of Contents](#table-of-contents)
     * [SEPIA](#sepia)
     * [Methods](#methods)
       * [Genetic Algorithms](#genetic-algorithms)
@@ -22,6 +23,18 @@ a reinforcement learning algorithm that learns to play the video game DOTA 2.
       * [Fitness](#fitness)
       * [Results](#results)
     * [Reinforcement Learning Implementation](#reinforcement-learning-implementation)
+    * [Q Table Agent](#q-table-agent)
+      * [Observation Space](#observation-space-1)
+      * [Action Space](#action-space-1)
+      * [Results](#results-1)
+    * [Cross Entropy Agent](#cross-entropy-agent)
+      * [Policy](#policy)
+      * [Observation Space](#observation-space-2)
+      * [Action Space](#action-space-2)
+      * [Rewards](#rewards)
+      * [Results and Future Work](#results-and-future-work)
+      * [Code Efficiency Analysis](#code-efficiency-analysis)
+    * [gRPC Implementation](#grpc-implementation)
 
 
 ## SEPIA
@@ -193,12 +206,13 @@ gain a positive reward. The following table lists actions and their associated r
 * Win: 1.0
 
 #### Results and Future Work
-A CE agent with 1 hidden layer of size 8 was trained for 170 epochs, or 660,000 iterations. It achieved a win rate of
-89% in the 2v2 against the default CombatAgentEnemy, which corresponds to a trueskill of 37.
+A CE agent with 1 hidden layer of size 8 was trained for around 900,000 iterations. It achieved a win rate of
+90% in the 2v2 against the default CombatAgentEnemy, which corresponds to a trueskill of 38. Training takes ~7 minutes.
 
-This graph shows the trueskill of the CE agent at certain iterations. Training took ~5 minutes.
+This chart shows the win rate over time of 5 identical training runs of the CE agent. Due to the random nature of the CE algorithm,
+although the agent often achieves the 90% win rate, it can sometimes converge to less optimal behavior.
 
-![Trueskill of CE Agent](readme_images/trueskill_of_ce_agent.png "Trueskill of CE Agent")
+![CE Agent 5 Runs Win Rate](readme_images/ce_agent_5_runs_win_rate.png "CE Agent 5 Runs Win Rate")
 
 The agent employ a few neat strategies. Notably, because the CombatAgentEnemy is very basic, and always tries to move
 closer and attack, the CE agent simply waits in place for the enemy to approach it. This allows it to get an attack in
@@ -210,6 +224,27 @@ increasing their chance of winning. Possible remedies to help encourage this beh
 input observations. For example, a state history, which would allow the agent to know if enemy units had moved last turn.
 A different network architecture, such as an LSTM, could also resolve this problem, but may be difficult to work with the
 CE algorithm.
+
+#### Code Efficiency Analysis
+
+During initial testing of the CE agent, the code was seen to run notably slower than the Q table agent, at only ~1200
+game steps / s. Using [cProfile](https://docs.python.org/3/library/profile.html#module-cProfile) and
+[gprof2dot](https://github.com/jrfonseca/gprof2dot),
+the agent's control code was profiled and a graph of the performance statistics generated.
+A cropped portion of this graph is show below. This chart shows the cumulative execution time of a function and the
+functions it calls, as well as the time spent in that function alone. Using this graph, the functions
+`random_weighted_index`, `normalize_data`, `record_data`, and `softmax`
+were selected as potential efficiency-improving targets (The function being profiled, `env_callback`, trivially has the
+largest cumulative time spent executing, thus its warning red color can be ignored).
+
+![CE Agent Code Profiling](readme_images/ce_agent_code_profiling.png "CE Agent Code Profiling")
+
+`record_data`, which calculates the running mean and std dev of the agent's observations, was improved by doing
+the calculations in batches, so that the function did not need to be called on every timestep.
+The other functions were improved by putting them into a test bed where their execution speed could be timed directly,
+and by finding small code tweaks that improved their efficiency.
+For example, using the python module `random` to select a random value is more effecient than the initially used
+using `numpy.random`. After these changes were made, code efficiency increased 60% to ~1900 game steps / s
 
 
 ## gRPC Implementation
