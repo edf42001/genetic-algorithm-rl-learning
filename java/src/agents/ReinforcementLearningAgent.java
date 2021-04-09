@@ -2,6 +2,7 @@ package agents;
 
 import agents.interfaces.AgentInterface;
 import agents.interfaces.CrossEntropyAgentInterface;
+import agents.interfaces.DeepPolicyAgentInterface;
 import edu.cwru.sepia.action.Action;
 import edu.cwru.sepia.agent.Agent;
 import edu.cwru.sepia.environment.model.history.DamageLog;
@@ -45,7 +46,7 @@ public class ReinforcementLearningAgent extends Agent {
         MyRand.initialize();
 
         // Initialize the agent interface to interact with the game world
-        agentInterface = new CrossEntropyAgentInterface(playernum);
+        agentInterface = new DeepPolicyAgentInterface(playernum);
 
         // Read enemyPlayerNum from args
         if(args.length > 0)
@@ -94,6 +95,14 @@ public class ReinforcementLearningAgent extends Agent {
 
     @Override
     public Map<Integer, Action> initialStep(State.StateView state, History.HistoryView history) {
+        // Get ids of my units
+        this.myUnitIDs = state.getUnitIds(this.playernum);
+
+        // And list of enemy units
+        this.enemyUnitIDs = state.getUnitIds(this.enemyPlayerNum);
+
+        this.lastMyUnitIDs = myUnitIDs;
+        this.lastEnemyUnitIDs = enemyUnitIDs;
         return middleStep(state, history);
     }
 
@@ -110,10 +119,17 @@ public class ReinforcementLearningAgent extends Agent {
 
         // Get each unit's observations and last reward
         // Add them to the message to be sent to python
-        for (Integer unitID : myUnitIDs)
+        for (Integer unitID : lastMyUnitIDs)
         {
-            int [] unitObservation = agentInterface.observeUnitState(unitID, state, myUnitIDs, enemyUnitIDs);
-            float lastReward = agentInterface.getUnitLastReward(unitID, state, history, myUnitIDs, enemyUnitIDs, false);
+
+            int [] unitObservation = new int[0];
+            // If alive, get observation, otherwise state will be empty because we just want to know the reward
+            if (myUnitIDs.contains(unitID))
+            {
+               unitObservation = agentInterface.observeUnitState(unitID, state, myUnitIDs, enemyUnitIDs);
+            }
+
+            float lastReward = agentInterface.getUnitLastReward(unitID, state, history, lastMyUnitIDs, lastEnemyUnitIDs, false);
             client.addEnvironmentState(unitObservation, lastReward, unitID);
         }
 

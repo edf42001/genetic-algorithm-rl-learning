@@ -8,6 +8,7 @@ from agents import QTableAgent
 from agents import RandomAgent
 from agents import QTableExplorationAgent
 from agents import CrossEntropyNNAgent
+from agents import DeepPolicyNNAgent
 
 from data_saving.data_saver import DataSaver
 
@@ -16,7 +17,7 @@ class RLTrainingEnemyAgent:
     def __init__(self):
         self.server = EnvironmentServiceImpl(self.env_callback, self.winner_callback)
 
-        self.agent = CrossEntropyNNAgent()
+        self.agent = DeepPolicyNNAgent()
 
         # Create object to handle data saving
         self.data_saver = DataSaver("saved_runs")

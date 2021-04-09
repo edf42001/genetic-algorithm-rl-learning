@@ -43,7 +43,7 @@ public class DeepPolicyAgentInterface implements AgentInterface {
         int ourStateSize = 1;
 
         int stateSize = numUnits * unitStateSize + ourStateSize;
-        int[] env = new int[stateSize+1];
+        int[] env = new int[stateSize];
 
         // Fill in default values of -1 million, so that dead units that don't fill in data can be differentiated
         // from a data value of 0
@@ -121,9 +121,6 @@ public class DeepPolicyAgentInterface implements AgentInterface {
             index += unitStateSize;
         }
 
-        // Turn number in last state
-        env[env.length - 1] = state.getTurnNumber();
-
         return env;
     }
 
@@ -136,7 +133,7 @@ public class DeepPolicyAgentInterface implements AgentInterface {
             return getUnitFinalLastReward(unitID, state, history, myUnitIDs, enemyUnitIDs);
         }
 
-        float stepReward = -0.03f;
+        float stepReward = -0.00f;
         float distanceReward = 0.009f;
         float damageReward = 0.05f;
         float enemyDamageReward = -0.03f;
@@ -155,12 +152,15 @@ public class DeepPolicyAgentInterface implements AgentInterface {
         Unit.UnitView unit = state.getUnit(unitID);
         Unit.UnitView enemy = state.getUnit(enemyUnitIDs.get(0));
 
-        int unitX = unit.getXPosition();
-        int unitY = unit.getYPosition();
-        int enemyX = enemy.getXPosition();
-        int enemyY = enemy.getYPosition();
+        // Will be null if they have just died
+        if (unit != null && enemy != null) {
+            int unitX = unit.getXPosition();
+            int unitY = unit.getYPosition();
+            int enemyX = enemy.getXPosition();
+            int enemyY = enemy.getYPosition();
 
-        reward += distanceReward / (Math.abs(enemyX - unitX) + Math.abs(enemyY - unitY));
+            reward += distanceReward / (Math.abs(enemyX - unitX) + Math.abs(enemyY - unitY));
+        }
 
         // Reward agent for attacking enemy
         // Check damage logs
@@ -185,7 +185,7 @@ public class DeepPolicyAgentInterface implements AgentInterface {
                                         List<Integer> myUnitIDs, List<Integer> enemyUnitIDs)
     {
         float reward = 0;
-        float stepReward = -0.03f;
+        float stepReward = -0.00f;
         float damageReward = 0.05f;
         float enemyDamageReward = -0.03f;
 
