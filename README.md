@@ -1,7 +1,7 @@
 # Reinforcement Learning and Genetic Algorithms
 
 This project is an experimental dive into machine learning to create an agent for the SEPIA environment.
-[SEPIA](https://github.com/timernsberger/sepia) (Strategy Engine for Programming Intelligent Agents) is a Java environment given to those in CWRU's CSDS 391 (Intro to AI) course.
+[SEPIA](https://github.com/rail-cwru/Sepia) (Strategy Engine for Programming Intelligent Agents) is a Java environment given to those in CWRU's CSDS 391 (Intro to AI) course.
 Agents in this environment control units which can perform tasks such as gathering resources, building buildings, and fighting. I have chosen to focus on the combat aspect as I find it the most exciting.
 
 This project uses gRPC to allow the neural network code (written in Python) to communicate with SEPIA (written in Java).

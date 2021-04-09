@@ -10,6 +10,10 @@ import edu.cwru.sepia.util.Direction;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Interface for the Q Table agent. State consists of unit location in a 5x5 grid around each unit
+ * Each unit the agent controls sees a different state because they are in different locations
+ */
 public class QTableInterface implements AgentInterface {
 
     private int playernum;

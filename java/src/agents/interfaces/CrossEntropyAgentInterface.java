@@ -11,6 +11,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Interface for the Cross Entropy agent.
+ * State consists of unit x and y displacement, distance, health, and if they are in range of the current unit
+ * Each unit the agent controls sees a different state because they are in different locations
+ */
 public class CrossEntropyAgentInterface implements AgentInterface {
     private int playernum;
 
