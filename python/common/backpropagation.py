@@ -98,13 +98,13 @@ def complex_softmax_layer_jacobian(x, y, label, weight_shape):
 
 def softmax_layer_jacobian(x, y, label):
     """
-    :param x: The inputs to this layer
-    :param y: The softmax outputs from this layer
+    :param x: The inputs to this layer (batch_size x n)
+    :param y: The softmax outputs from this layer (batch_size x m)
     Calculates the jacobian operator with respect to weights on the output cross entropy loss, but with a simpler method
     :return:
     """
 
-    return np.outer(y - label, x)
+    return np.dot((y - label).T, x)
 
 
 def softmax_layer_jacobian_wrt_inputs(weights, y, label):
@@ -113,13 +113,23 @@ def softmax_layer_jacobian_wrt_inputs(weights, y, label):
     # cross_entropy_jac = cross_entropy_jacobian(y, label)
     # return cross_entropy_jac.dot(softmax_jac.dot(weights))
 
-    return (y - label).dot(weights)
+    # (batch x m), (m X h) -> (batch_size x h)
+    return np.dot(y - label, weights)
 
 
 def previous_layers_weights_jacobian(x, weights, y, label):
+    """
+    :param x: (batch size x n)
+    :param weights: (m x h)
+    :param y: (batch_size x m)
+    :param label: (batch_size x m)
+    :return: previous layers weights (h x n)
+    """
+
+    # d_hidden: gradient of hidden layer, (batch_size x h)
     d_hidden = softmax_layer_jacobian_wrt_inputs(weights, y, label)
 
-    return np.outer(d_hidden, x)
+    return np.dot(d_hidden.T, x)
 
 
 def model_gradients(x, hidden, y, weights, label):
@@ -133,13 +143,54 @@ def model_gradients(x, hidden, y, weights, label):
     """
     gradients = []
     # Negative signs are because we are doing gradient descent
-    # Last layer's gradient
-    gradients.append(-softmax_layer_jacobian(hidden, y, label))
 
     # First layer's gradient
-    gradients.insert(0, -previous_layers_weights_jacobian(x, weights, y, label))
+    first_layer_grad = -previous_layers_weights_jacobian(x, weights, y, label)
+    gradients.append(first_layer_grad)
+
+    # Last layer's gradient
+    last_layer_grad = -softmax_layer_jacobian(hidden, y, label)
+    gradients.append(last_layer_grad)
+
+    print("first_layer_grad")
+    print(first_layer_grad)
+
+    print("last_layer_grad")
+    print(last_layer_grad)
 
     return gradients
+
+
+def test_gradient_with_stacked_inputs():
+    # Random seed
+    np.random.seed(0)
+    np.set_printoptions(precision=4, floatmode='fixed', linewidth=1000, suppress=True)
+
+    layers = [4, 3, 2]
+    model = create_model(layers)
+
+    input_data = np.random.normal(0, 1, layers[0])
+    output_data, hidden_data = policy_feed_forward(model, input_data)
+    softmax_data = softmax(output_data)
+    desired_label = [0, 1]
+
+    # gradients_non_stacked = model_gradients(input_data, hidden_data, softmax_data, model[1], desired_label)
+    # print(gradients_non_stacked)
+
+    input_data_stacked = np.vstack((input_data, input_data, input_data, input_data))
+    softmax_data_stacked = np.vstack((softmax_data, softmax_data, softmax_data, softmax_data))
+    hidden_data_stacked = np.vstack((hidden_data, hidden_data, hidden_data, hidden_data))
+    desired_label_stacked = np.vstack((desired_label, desired_label, desired_label, desired_label))
+
+    gradients_stacked = model_gradients(input_data_stacked, hidden_data_stacked, softmax_data_stacked, model[1], desired_label_stacked)
+    print("stacked")
+    print(gradients_stacked)
+
+    # [array([[-0.0458,  0.1248,  0.3731, -0.0955],
+    #           [ 0.1469, -0.4009, -1.1982,  0.3068],
+    #           [-0.0695,  0.1896,  0.5667, -0.1451]]),
+    #           array([[ 0.2439,  0.3273, -0.0592],
+    #                  [-0.2439, -0.3273,  0.0592]])]
 
 
 def test_jacobians():
@@ -172,6 +223,7 @@ def test_jacobians():
 
 if __name__ == "__main__":
     # Test backpropagation
+    test_gradient_with_stacked_inputs()
 
     # Random seed
     np.random.seed(0)
@@ -205,6 +257,8 @@ if __name__ == "__main__":
     print(error)
     print()
 
+    # TODO: These need to be all stacked
+    # TODO: subtract label and softmax before passing to function
     output_data, hidden_data = policy_feed_forward(model, input_data)
     softmax_data = softmax(output_data)
 
