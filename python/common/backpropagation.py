@@ -96,67 +96,59 @@ def complex_softmax_layer_jacobian(x, y, label, weight_shape):
     return ce_jac.dot(softmax_jac.dot(weights_jac)).reshape(len(x), len(y))
 
 
-def softmax_layer_jacobian(x, y, label):
+def softmax_layer_jacobian(x, loss):
     """
     :param x: The inputs to this layer (batch_size x n)
-    :param y: The softmax outputs from this layer (batch_size x m)
+    :param loss: The actual action taken minus the softmax outputs from this layer (batch_size x m)
     Calculates the jacobian operator with respect to weights on the output cross entropy loss, but with a simpler method
     :return:
     """
 
-    return np.dot((y - label).T, x)
+    return np.dot(loss.T, x)
 
 
-def softmax_layer_jacobian_wrt_inputs(weights, y, label):
+def softmax_layer_jacobian_wrt_inputs(weights, loss):
     # Equivalent to:
     # softmax_jac = softmax_jacobian(y)
     # cross_entropy_jac = cross_entropy_jacobian(y, label)
     # return cross_entropy_jac.dot(softmax_jac.dot(weights))
 
     # (batch x m), (m X h) -> (batch_size x h)
-    return np.dot(y - label, weights)
+    return np.dot(loss, weights)
 
 
-def previous_layers_weights_jacobian(x, weights, y, label):
+def previous_layers_weights_jacobian(x, weights, loss):
     """
     :param x: (batch size x n)
     :param weights: (m x h)
-    :param y: (batch_size x m)
-    :param label: (batch_size x m)
+    :param loss: (batch_size x m)
     :return: previous layers weights (h x n)
     """
 
     # d_hidden: gradient of hidden layer, (batch_size x h)
-    d_hidden = softmax_layer_jacobian_wrt_inputs(weights, y, label)
+    d_hidden = softmax_layer_jacobian_wrt_inputs(weights, loss)
 
     return np.dot(d_hidden.T, x)
 
 
-def model_gradients(x, hidden, y, weights, label):
+def model_gradients(x, hidden, loss, weights):
     """
     :param x:
     :param hidden:
-    :param y:
+    :param loss:
     :param weights:
-    :param label:
     :return:
     """
     gradients = []
     # Negative signs are because we are doing gradient descent
 
     # First layer's gradient
-    first_layer_grad = -previous_layers_weights_jacobian(x, weights, y, label)
+    first_layer_grad = -previous_layers_weights_jacobian(x, weights, loss)
     gradients.append(first_layer_grad)
 
     # Last layer's gradient
-    last_layer_grad = -softmax_layer_jacobian(hidden, y, label)
+    last_layer_grad = -softmax_layer_jacobian(hidden, loss)
     gradients.append(last_layer_grad)
-
-    print("first_layer_grad")
-    print(first_layer_grad)
-
-    print("last_layer_grad")
-    print(last_layer_grad)
 
     return gradients
 
@@ -174,7 +166,7 @@ def test_gradient_with_stacked_inputs():
     softmax_data = softmax(output_data)
     desired_label = [0, 1]
 
-    # gradients_non_stacked = model_gradients(input_data, hidden_data, softmax_data, model[1], desired_label)
+    # gradients_non_stacked = model_gradients(input_data, hidden_data, softmax_data - desired_label, model[1])
     # print(gradients_non_stacked)
 
     input_data_stacked = np.vstack((input_data, input_data, input_data, input_data))
@@ -182,7 +174,8 @@ def test_gradient_with_stacked_inputs():
     hidden_data_stacked = np.vstack((hidden_data, hidden_data, hidden_data, hidden_data))
     desired_label_stacked = np.vstack((desired_label, desired_label, desired_label, desired_label))
 
-    gradients_stacked = model_gradients(input_data_stacked, hidden_data_stacked, softmax_data_stacked, model[1], desired_label_stacked)
+    gradients_stacked = model_gradients(input_data_stacked, hidden_data_stacked,
+                                        softmax_data_stacked - desired_label_stacked, model[1])
     print("stacked")
     print(gradients_stacked)
 

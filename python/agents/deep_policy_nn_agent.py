@@ -5,6 +5,7 @@ import json
 
 from agents import Agent
 from common.data_normalizer import DataNormalizer
+from common.backpropagation import policy_feed_forward, model_gradients
 
 EP_END = -100  # Number in rewards that indicates game end. Rewards in one game should not interact with others
 
@@ -16,8 +17,8 @@ class DeepPolicyNNAgent(Agent):
         self.discount_rate = 0.95  # Discount future rewards. Time horizon = 1 / (1 - rate)
         self.learning_rate = 1.0E-2  # NN gradient learning rate
 
-        self.batch_size = 3  # After how many games to do a network update
-        self.rmsprop_batch_size = 15  # After how many games to do a rmsprop param update
+        self.mini_batch_size = 3  # After how many games to do a network update
+        self.batch_size = 15  # After how many games to do a rmsprop param update
 
         self.entropy_weight = 0.01  # Weight given to entropy of action probabilities bonus
 
@@ -29,11 +30,15 @@ class DeepPolicyNNAgent(Agent):
         # Helps us normalize input data to network
         self.data_normalizer = DataNormalizer(shape=self.layers[0])
 
-        # Bookkeeping
+        # Bookkeeping for backprop
         self.obs = []  # List of all observations vectors seen in an epoch
         self.rewards = dict()  # List of all rewards seen in an epoch
         self.actions = dict()  # List of all actions taken in an epoch
-        self.nn_outputs = dict()
+        self.nn_outputs = dict()  # List of softmax outputs each timestep
+        self.nn_hidden = dict()  # List of hidden layer values each timestep
+        self.nn_inputs = dict()  # List of the inputs to the nn
+
+        self.grad_buffer = [np.zeros_like(layer) for layer in self.model]
 
         # The agent only takes actions in eval mode, and doesn't train
         self.eval_mode = False
@@ -105,7 +110,7 @@ class DeepPolicyNNAgent(Agent):
             # print(state)
 
             # Forward pass state through network:
-            result = self.policy_feed_forward(state)
+            result, hidden = policy_feed_forward(self.model, state)
 
             # Softmax activation and random sample
             softmax = self.softmax(result)
@@ -121,11 +126,15 @@ class DeepPolicyNNAgent(Agent):
             if unit_id not in self.actions:
                 self.actions[unit_id] = [action_1_hot]
                 self.nn_outputs[unit_id] = [softmax]
+                self.nn_hidden[unit_id] = [hidden]
+                self.nn_inputs[unit_id] = [state]
             else:
                 self.actions[unit_id].append(action_1_hot)
                 self.nn_outputs[unit_id].append(softmax)
+                self.nn_hidden[unit_id].append(hidden)
+                self.nn_inputs[unit_id].append(state)
 
-        # print(result)
+            # print(result)
             # print(softmax)
             # print()
             actions += [action]
@@ -157,30 +166,50 @@ class DeepPolicyNNAgent(Agent):
 
         self.epochs += 1
 
-        if self.epochs % self.batch_size == 0:
-            print("Epoch %d: Doing model update" % self.epochs)
+        if self.epochs % self.mini_batch_size == 0:
+            # print("Epoch %d: finding grads" % self.epochs)
             for unit_id in self.rewards.keys():
                 rewards = np.array(self.rewards[unit_id], dtype='float64')
                 actions_taken = np.vstack(self.actions[unit_id])
+                nn_inputs = np.vstack(self.nn_inputs[unit_id])
+                nn_hidden = np.vstack(self.nn_hidden[unit_id])
                 nn_outputs = np.vstack(self.nn_outputs[unit_id])
                 discounted_rewards = np.vstack(self.discount_rewards(rewards))
 
-                print([float("%.2f" % x) for x in rewards[rewards != EP_END]])
+                # print("Reward sum: %.2f" % sum(rewards))
+                # print([float("%.2f" % x) for x in rewards[rewards != EP_END]])
                 # Normalize rewards. Makes backprop work better
-                print([float("%.2f" % x) for x in discounted_rewards])
+                # print([float("%.2f" % x) for x in discounted_rewards])
                 discounted_rewards -= np.mean(discounted_rewards)
                 discounted_rewards /= np.std(discounted_rewards)
-                print([float("%.2f" % x) for x in discounted_rewards])
-                print()
+                # print([float("%.2f" % x) for x in discounted_rewards])
+                # print()
 
                 # Difference between softmax output and 1 hot encoded action
                 # Multiply it by rewards (advantage) to encourage those actions which led
                 # to high rewards, and discourage those that didn't
-                y_loss = actions_taken - nn_outputs
+                y_loss = nn_outputs - actions_taken
                 y_loss *= discounted_rewards
+
+                grad = model_gradients(nn_inputs, nn_hidden, y_loss, self.model[1])
+
+                # Store grads in buffer for eventual update
+                for i in range(len(self.grad_buffer)):
+                    self.grad_buffer[i] += grad[i]
 
             # Reset storage
             self.actions, self.rewards, self.nn_outputs = dict(), dict(), dict()
+
+            # Do model update
+            if self.epochs % self.batch_size == 0:
+                # TODO make it so these don't have to be mulitplies of each other
+                print("Epoch %d: doing model update" % self.epochs)
+                for i in range(len(self.grad_buffer)):
+                    self.model[i] += self.grad_buffer[i] * self.learning_rate
+
+                    # Reset buffer
+                    self.grad_buffer[i] = np.zeros_like(self.grad_buffer[i])
+
         else:
             # If we are not doing an update, record this as the end of an episode in the rewards list:
             for unit_id in self.rewards:
@@ -220,7 +249,7 @@ class DeepPolicyNNAgent(Agent):
     def discount_rewards(self, r):
         """Take 1D float array of rewards and compute discounted reward"""
         length = len(r)
-        shape = length - self.batch_size + 1  # Reduce space because the end of episode markers don't count
+        shape = length - self.mini_batch_size + 1  # Reduce space because the end of episode markers don't count
         discounted_r = np.zeros(shape=shape)
         running_add = 0
 
