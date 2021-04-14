@@ -284,23 +284,26 @@ class DeepPolicyNNAgent(Agent):
         config = dict()
         config["name"] = type(self).__name__
         config["iterations"] = self.iterations
-        config["elapsed_time"] = time.time() - self.start_time
-        config["std_noise"] = 0
-        config["num_trials"] = self.num_trials
         config["epochs"] = self.epochs
+        config["elapsed_time"] = time.time() - self.start_time
+        config["discount_rate"] = self.discount_rate
+        config["learning_rate"] = self.learning_rate
+        config["learning_rate"] = self.learning_rate_decay
+        config["mini_batch_size"] = self.mini_batch_size
+        config["batch_size"] = self.batch_size
+        config["entropy_weight"] = self.entropy_weight
         config["layers"] = self.layers
 
-        # Create a layers dict to save each layer's params to a numpy savez
-        layers = dict()
-        for i in range(len(self.layers) - 1):
-            layers["u_" + str(i)] = self.u[i]
-            layers["std_" + str(i)] = self.std[i]
+        # Create a weights dict to save each layer's params to a numpy savez
+        weights = dict()
+        for i in range(len(self.model)):
+            weights["weights_" + str(i)] = self.model[i]
 
         # Save arrays
         with open(params_file, 'wb') as f:
-            np.savez(f, **layers, data_u=self.data_normalizer.mean, data_var=self.data_normalizer.var)
+            np.savez(f, **weights, data_u=self.data_normalizer.mean, data_var=self.data_normalizer.var)
 
-        # Save other info
+        # Save config info
         with open(config_file, 'w') as f:
             json.dump(config, f)
 
@@ -311,20 +314,22 @@ class DeepPolicyNNAgent(Agent):
         with open(config_file, 'r') as f:
             config = json.load(f)
             self.iterations = config["iterations"]
-            self.num_trials = config["num_trials"]
             self.epochs = config["epochs"]
+            self.discount_rate = config["discount_rate"]
+            self.learning_rate = config["learning_rate"]
+            self.learning_rate_decay = config["learning_rate"]
+            self.mini_batch_size = config["mini_batch_size"]
+            self.batch_size = config["batch_size"]
+            self.entropy_weight = config["entropy_weight"]
             self.layers = config["layers"]
-            # self.std_noise = config["std_noise"]
 
         with np.load(params_file, 'rb') as data:
-            # Reset u and std
-            self.u = []
-            self.std = []
+            # Reset model
+            self.model = []
 
             # Load each layer's u and std params
             for i in range(len(self.layers) - 1):
-                self.u.append(data["u_" + str(i)])
-                self.std.append(data["std_" + str(i)])
+                self.model.append(data["weights_" + str(i)])
 
             # Load our data normalizer's info
             self.data_normalizer.mean = data["data_u"]
