@@ -15,7 +15,8 @@ class DeepPolicyNNAgent(Agent):
         super().__init__()
 
         self.discount_rate = 0.95  # Discount future rewards. Time horizon = 1 / (1 - rate)
-        self.learning_rate = 1.0E-2  # NN gradient learning rate
+        self.learning_rate = 1.0E-3  # NN gradient learning rate
+        self.learning_rate_decay = 0.96
 
         self.mini_batch_size = 3  # After how many games to do a network update
         self.batch_size = 15  # After how many games to do a rmsprop param update
@@ -23,7 +24,7 @@ class DeepPolicyNNAgent(Agent):
         self.entropy_weight = 0.01  # Weight given to entropy of action probabilities bonus
 
         # Layer sizes in the neural network. Must contain at least two layers, for input and output size
-        self.layers = [16, 8, 5]
+        self.layers = [16, 16, 5]
 
         self.model = self.create_model(self.layers)
 
@@ -203,13 +204,16 @@ class DeepPolicyNNAgent(Agent):
             # Do model update
             if self.epochs % self.batch_size == 0:
                 # TODO make it so these don't have to be mulitplies of each other
-                print("Epoch %d: doing model update" % self.epochs)
+
+                # Implement learning rate decay
+                learning_rate = self.learning_rate * np.power(self.learning_rate_decay, self.iterations / 10000.0)
+
+                print("Epoch %d: doing model update %.6f" % (self.epochs, learning_rate))
                 for i in range(len(self.grad_buffer)):
-                    self.model[i] += self.grad_buffer[i] * self.learning_rate
+                    self.model[i] += self.grad_buffer[i] * learning_rate
 
                     # Reset buffer
                     self.grad_buffer[i] = np.zeros_like(self.grad_buffer[i])
-
         else:
             # If we are not doing an update, record this as the end of an episode in the rewards list:
             for unit_id in self.rewards:

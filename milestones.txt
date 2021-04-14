@@ -1,5 +1,10 @@
 Milestones:
 
+4/13/12:
+Succseffuly implemented Deep Policy Network agent, reaches 92% win rate after only 200,000 iterations
+Original lr of 0.01 sometimes leads to no learning, 0.001 works better, hidden layer size of 16 vs 8 seems to
+learn slightly slower but not end up any better.
+
 3/26/21: Cross Entropy Agent with decaying added std_dev noise, 16 x 8 x 5 dense neural net achieves 89% win rate,
 5% lose rate against 2v2 CombatAgentEnemy. Tends to get stuck with second unit not attacking,
 thus wasting potential damage.
