@@ -29,7 +29,7 @@ class RLTrainingEnemyAgent:
         self.iterations = 0
 
         # Stop after this many iterations
-        self.num_iterations = 680010
+        self.num_iterations = 380010
 
         self.start_time = time.time()
 

@@ -6,6 +6,7 @@ import json
 from agents import Agent
 from common.data_normalizer import DataNormalizer
 from common.backpropagation import policy_feed_forward, model_gradients
+from common.adam_optimizer import AdamOptimizer
 
 EP_END = -100  # Number in rewards that indicates game end. Rewards in one game should not interact with others
 
@@ -15,7 +16,7 @@ class DeepPolicyNNAgent(Agent):
         super().__init__()
 
         self.discount_rate = 0.95  # Discount future rewards. Time horizon = 1 / (1 - rate)
-        self.learning_rate = 1.0E-3  # NN gradient learning rate
+        self.learning_rate = 1.0E-2  # NN gradient learning rate
         self.learning_rate_decay = 0.96
 
         self.mini_batch_size = 3  # After how many games to do a network update
@@ -40,6 +41,9 @@ class DeepPolicyNNAgent(Agent):
         self.nn_inputs = dict()  # List of the inputs to the nn
 
         self.grad_buffer = [np.zeros_like(layer) for layer in self.model]
+
+        self.adam_opt = AdamOptimizer([x.shape for x in self.model], learning_rate=self.learning_rate,
+                                      beta1=0.9, beta2=0.999)
 
         # The agent only takes actions in eval mode, and doesn't train
         self.eval_mode = False
@@ -209,8 +213,11 @@ class DeepPolicyNNAgent(Agent):
                 learning_rate = self.learning_rate * np.power(self.learning_rate_decay, self.iterations / 10000.0)
 
                 print("Epoch %d: doing model update %.6f" % (self.epochs, learning_rate))
+
+                grad = self.adam_opt.get_gradients(self.grad_buffer, self.epochs / self.batch_size)
+
                 for i in range(len(self.grad_buffer)):
-                    self.model[i] += self.grad_buffer[i] * learning_rate
+                    self.model[i] += grad[i]
 
                     # Reset buffer
                     self.grad_buffer[i] = np.zeros_like(self.grad_buffer[i])
