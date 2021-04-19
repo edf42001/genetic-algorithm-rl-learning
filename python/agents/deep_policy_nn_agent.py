@@ -95,7 +95,7 @@ class DeepPolicyNNAgent(Agent):
 
                 # Average rewards across team according to team spirit
                 # r_i = (1 - t) * p_i + t * p_mean (r_i being agent's modified reward, p being raw agent's reward)
-                reward = (1 - self.team_spirit) * raw_reward + self.team_spirit * raw_reward
+                reward = (1 - self.team_spirit) * raw_reward + self.team_spirit * mean_reward
                 self.rewards[state.unit_id].append(reward)
 
         # If over, next turn will be first turn, otherwise do nothing
