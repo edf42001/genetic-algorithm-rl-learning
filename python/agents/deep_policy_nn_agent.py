@@ -19,10 +19,13 @@ class DeepPolicyNNAgent(Agent):
         self.learning_rate = 1.0E-2  # NN gradient learning rate
         self.learning_rate_decay = 0.96
 
-        self.mini_batch_size = 3  # After how many games to do a network update
+        self.mini_batch_size = 15  # After how many games to do a network update
         self.batch_size = 15  # After how many games to do a rmsprop param update
 
         self.entropy_weight = 0.01  # Weight given to entropy of action probabilities bonus
+
+        # Team spirit weight. Affects how rewards are shared across the team
+        self.team_spirit = 0.0
 
         # Layer sizes in the neural network. Must contain at least two layers, for input and output size
         self.layers = [16, 16, 5]
@@ -79,13 +82,21 @@ class DeepPolicyNNAgent(Agent):
         # We still need to use the last reward to update
         episode_over = len(request.agent_data[0].state) == 0
 
+        # Find mean reward, used for team spirit
+        mean_reward = np.sum([state.last_action_reward for state in request.agent_data]) / len(request.agent_data)
+
         # Record reward, if this is not the first turn
         for state in request.agent_data:
             if state.unit_id not in self.rewards:
                 # If empty, initialize. The first reward is not real because we haven't yet taken an action
                 self.rewards[state.unit_id] = []
             elif not self.ep_start:
-                self.rewards[state.unit_id].append(state.last_action_reward)
+                raw_reward = state.last_action_reward
+
+                # Average rewards across team according to team spirit
+                # r_i = (1 - t) * p_i + t * p_mean (r_i being agent's modified reward, p being raw agent's reward)
+                reward = (1 - self.team_spirit) * raw_reward + self.team_spirit * raw_reward
+                self.rewards[state.unit_id].append(reward)
 
         # If over, next turn will be first turn, otherwise do nothing
         if episode_over:
@@ -160,8 +171,14 @@ class DeepPolicyNNAgent(Agent):
 
         # If in eval mode, no need to update. Just run
         if self.eval_mode:
+            # Reset storage so as not to use up memory
+            # TODO: Why bother storing these values during eval mode in the first place?
+            self.actions, self.rewards, self.nn_outputs = dict(), dict(), dict()
+            self.obs = []
             return
 
+        # TODO: Investigate: does this line actually change training, or is it random
+        # self.team_spirit = np.fmin(0.5, np.fmax(0.0, (self.iterations - 1.5E5) / (5.0E4)))
         # Because winner callback is called multiple times per epoch, only save upon the transition to new epoch
         self.should_save = False
 
@@ -212,7 +229,7 @@ class DeepPolicyNNAgent(Agent):
                 # Implement learning rate decay
                 learning_rate = self.learning_rate * np.power(self.learning_rate_decay, self.iterations / 10000.0)
 
-                print("Epoch %d: doing model update %.6f" % (self.epochs, learning_rate))
+                print("Epoch %d: doing model update" % self.epochs)
 
                 grad = self.adam_opt.get_gradients(self.grad_buffer, self.epochs / self.batch_size)
 
@@ -300,6 +317,7 @@ class DeepPolicyNNAgent(Agent):
         config["batch_size"] = self.batch_size
         config["entropy_weight"] = self.entropy_weight
         config["layers"] = self.layers
+        config["team_spirit"] = self.team_spirit
 
         # Create a weights dict to save each layer's params to a numpy savez
         weights = dict()
@@ -329,6 +347,7 @@ class DeepPolicyNNAgent(Agent):
             self.batch_size = config["batch_size"]
             self.entropy_weight = config["entropy_weight"]
             self.layers = config["layers"]
+            self.team_spirit = config["team_spirit"]
 
         with np.load(params_file, 'rb') as data:
             # Reset model
