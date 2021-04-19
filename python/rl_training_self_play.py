@@ -3,10 +3,9 @@ import sys
 
 from protos.environment_service_server import EnvironmentServiceImpl
 
-from agents import QTableAgent
-from agents import RandomAgent
-from agents import QTableExplorationAgent
+from agents import DeepPolicyNNAgent
 
+import random
 import numpy as np
 import os.path
 
@@ -19,8 +18,9 @@ class RLTrainingSelfPlay:
         self.server = EnvironmentServiceImpl(self.env_callback, self.winner_callback)
 
         # Create the main agent and a slot for the other agent they will be playing against
-        self.main_agent = QTableAgent()
-        self.other_agent = QTableAgent()
+        self.main_agent = DeepPolicyNNAgent()
+        self.other_agent = DeepPolicyNNAgent()
+        self.other_agent.set_eval_mode(True)  # The other agent isn't the one learning
 
         # Create object to handle data saving
         self.data_saver = DataSaver("saved_runs")
@@ -36,6 +36,12 @@ class RLTrainingSelfPlay:
 
         # How many games have been played
         self.epochs = 0
+
+        # After how many games to save the current agent
+        self.save_agent_freq = 200
+
+        # After how many games to swap out the opponent with a new agent
+        self.new_agent_freq = 15
 
         # Used to make sure both players have sent their final message before closing the server
         self.winner_pid_seen = 0
@@ -54,6 +60,11 @@ class RLTrainingSelfPlay:
         # Start time
         self.start_time = time.time()
 
+        self.win_stats = [0, 0]
+
+        # Print arrays nicer
+        np.set_printoptions(precision=3, floatmode='fixed', linewidth=1000, suppress=True)
+
     def on_shutdown(self):
         print("Closing data files")
         self.data_saver.close_data_files()
@@ -67,33 +78,42 @@ class RLTrainingSelfPlay:
         Do a learning update and return the requested action
         """
 
-        # Save every couple of steps, only once for player0, don't double save
-        should_save = (self.iterations < 100000 and (self.iterations + 1) % 15000 == 0) or \
-                      (self.iterations + 1) % 30000 == 0
-        if should_save and request.player_id == 0:
-            # print("Saving agent to file")
-            # self.data_saver.save_agent_to_file(self.main_agent)
-            pass
-
         # Pass the data to the agent, and return the actions returned
         # Make sure to use the right agent
         if request.player_id == 0:
             self.iterations += 1  # Both player's iterations are the same so only count one
+
+            # Record win rate
+            if self.iterations % 10000 == 0:
+                self.data_saver.write_line_to_wins_file(self.win_stats[0] / sum(self.win_stats))
+                self.win_stats = [0, 0]
+
             return self.main_agent.env_callback(request)
         else:
             return self.other_agent.env_callback(request)
 
     def winner_callback(self, request):
-        # This is called twice, only do things for one of the times
+        # This is called twice, only do things once, use the player id to ensure this
         if request.player_id == 0:
+            # Tell the agent the episode has ended
+            self.main_agent.winner_callback(request)
+
+            self.win_stats[request.winner] += 1
             self.epochs += 1
 
-            # If we won, update the past agent's quality
-            if request.winner == 0:
+            # If we won, lower the past agent's quality
+            # Unless we are currently fighting our most recent past version
+            if request.winner == 0 and not self.current_past_agent == -1:
                 self.past_agent_quality_update()
 
-            # Save a new agent every 200 games
-            if self.epochs % 200 == 0:
+            # Save a new agent every few games
+            # Save on startup to save initial, random agent as well
+            if self.epochs == 1 or self.epochs % self.save_agent_freq == 0:
+
+                # Save the agent's quality for inspection. Yes I am reusing the rewards file
+                # Because I currently don't have a good system for making files
+                self.data_saver.write_line_to_rewards_file(self.past_agents_quality)
+
                 # Save current agent to a file
                 folder = self.data_saver.save_agent_to_file(self.main_agent)
 
@@ -102,19 +122,19 @@ class RLTrainingSelfPlay:
                 if self.past_agents_quality.size == 0:
                     self.past_agents_quality = np.array([1.0])
                 else:
+                    # Add the current agent to the list, initialize it's quality to be the max of the current qualities
                     self.past_agents_quality = np.append(self.past_agents_quality, np.max(self.past_agents_quality))
 
-            # Switch to a new agent every 50 games
-            if self.epochs % 50 == 0:
+            # Switch to a new agent every `new_agent_epochs` games
+            if self.epochs % self.new_agent_freq == 0:
+                print()
+                print("Past agent's quality")
                 print(self.past_agents_quality)
-                print(self.softmax(self.past_agents_quality))
                 print()
                 # Get a new agent
                 self.select_new_agent()
 
-            # Record win history
-            self.data_saver.write_line_to_wins_file(request.winner)
-            # print("Episode over, winner " + str(request.winner))
+            print("Episode over, winner " + str(request.winner))
 
         # Check for doneness of our session, close server
         if self.iterations > self.num_iterations:
@@ -124,32 +144,34 @@ class RLTrainingSelfPlay:
                 self.winner_pid_seen += 1
             else:
                 print("Done, stopping server")
-                agent.server.stop()
+                self.server.stop()
 
         return None
 
     def select_new_agent(self):
         # Play against self most of the time
-        if np.random.uniform() > self.past_play_ratio:
+        if np.random.uniform() > self.past_play_ratio or len(self.past_agents_quality) == 1:
             # Load latest version of ourself
             index = -1
         else:
-            # Pick random past agent according to quality
-            index = self.random_weighted_index(self.softmax(self.past_agents_quality))
+            # Pick random past agent according to quality, not including this agent
+            index = self.random_weighted_index(self.softmax(self.past_agents_quality[:-1]))
 
         self.current_past_agent = index
-        self.other_agent = QTableAgent()
+        self.other_agent = DeepPolicyNNAgent()
+        # TODO: Load from folder method
         print("Selected agent " + str(index) + " to play against")
         self.other_agent.load_from_folder(self.past_agents_folders[index])
         self.other_agent.set_eval_mode(True)
 
     def softmax(self, x):
         """Compute softmax values for each sets of scores in x."""
-        e_x = np.exp(x - np.max(x))
-        return e_x / e_x.sum()
+        e_x = np.exp(x)
+        return e_x / np.sum(e_x)
 
     def random_weighted_index(self, x):
-        return np.random.choice(np.arange(x.size), 1, p=x)[0]
+        """Picks an action at random, weighted by value"""
+        return random.choices(np.arange(x.size), x)[0]
 
     def past_agent_quality_update(self):
         """Update past agent qualities, called when current agent beats a past agent"""

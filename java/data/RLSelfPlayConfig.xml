@@ -1,41 +1,32 @@
 <Configuration>
-	<Map>data/CombatWithLessUnits.xml</Map>
+	<Map>data/ReinforcementLearning.xml</Map>
 	<Player Id="1">
 		<AgentClass>
-			<ClassName>agents.MyCombatAgent</ClassName>
+			<ClassName>agents.ReinforcementLearningAgent</ClassName>
 			<Argument>0</Argument>
 		</AgentClass>
 	</Player>
-<!--	<Player Id="0">-->
-<!--		<AgentClass>-->
-<!--			<ClassName>agents.RandomDirectionAgent</ClassName>-->
-<!--			<Argument>1</Argument>-->
-<!--		</AgentClass>-->
-<!--	</Player>-->
 	<Player Id="0">
 		<AgentClass>
-			<ClassName>CombatAgentEnemy</ClassName>
+			<ClassName>agents.ReinforcementLearningAgent</ClassName>
 			<Argument>1</Argument>
-			<Argument>false</Argument>
-			<Argument>false</Argument>
-			<Argument>false</Argument>
 		</AgentClass>
 	</Player>
-	<Player Id="1">
-		<AgentClass>
-			<ClassName>edu.cwru.sepia.agent.visual.VisualAgent</ClassName>
-			<Argument>true</Argument>
-			<Argument>false</Argument>
-		</AgentClass>
-	</Player>
+<!--	<Player Id="1">-->
+<!--		<AgentClass>-->
+<!--			<ClassName>edu.cwru.sepia.agent.visual.VisualAgent</ClassName>-->
+<!--			<Argument>true</Argument>-->
+<!--			<Argument>false</Argument>-->
+<!--		</AgentClass>-->
+<!--	</Player>-->
 	<ModelParameters>
 		<Conquest>true</Conquest>
 		<Midas>false</Midas>
 		<ManifestDestiny>false</ManifestDestiny>
-		<TimeLimit>50</TimeLimit>
+		<TimeLimit>100</TimeLimit>
 	</ModelParameters>
 	<Runner>
-		<RunnerClass>edu.cwru.sepia.experiment.ExampleRunner</RunnerClass>
+		<RunnerClass>runners.RandomRunner</RunnerClass>
 		<Parameter Name="experiment.NumEpisodes" Value="1000000"/>
 		<Parameter Name="experiment.EpisodesPerSave" Value="1000000"/>
 		<Parameter Name="experiment.SaveAgents" Value="false"/>

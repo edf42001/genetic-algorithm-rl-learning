@@ -39,7 +39,8 @@ class DataSaver:
         self.wins_file = open(wins_path, 'a')
 
     def write_line_to_rewards_file(self, data):
-        self.rewards_file.write(" ".join([("%.5f" % num) for num in data]) + "\n")
+        self.rewards_file.write(" ".join([("%.3f" % num) for num in data]) + "\n")
+        self.rewards_file.flush()
 
     def write_line_to_wins_file(self, winner):
         """Used to record win loss tie record"""
