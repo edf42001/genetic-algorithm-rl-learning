@@ -24,6 +24,10 @@ def softmax(x):
     return e_x / np.sum(e_x)
 
 
+def entropy_of_probabilities(x):
+    return -np.sum(x * np.log(x))
+
+
 def policy_feed_forward(model, input):
     hidden = model[0].dot(input)
     result = model[1].dot(hidden)
@@ -131,6 +135,66 @@ def previous_layers_weights_jacobian(x, weights, loss):
     return np.dot(d_hidden.T, x)
 
 
+def entropy_loss_jacobian(y):
+    # Entropy = -sum(pi*log(pi))
+    # Derivative of entropy with respect to pi = -1 - log(pi)
+    jac = - (1 + np.log(y))
+    return jac
+
+
+def weights_gradient_wrt_entropy_loss(x, y):
+    """
+    Finds the gradients of the weight in the layer with respect to softmax output entropy
+    :param x: Inputs to this layer (1 x n)
+    :param y: Softmax outputs of this layer (1 x m)
+    :return: gradients 1 x (mxn), but reshaped to the weights shape, (m x n)
+    """
+
+    n = len(x)
+    m = len(y)
+
+    entropy_jac = entropy_loss_jacobian(y)
+    softmax_jac = softmax_jacobian(y)
+    weights_jac = weight_matrix_jacobian(x, weight_shape=(m, n))
+    entropy_softmax_jac = entropy_jac.dot(softmax_jac)
+    entropy_softmax_weights_jac = entropy_softmax_jac.dot(weights_jac)
+
+    return entropy_softmax_weights_jac.reshape((m, n))
+
+
+def previous_layer_jacobian(weights):
+    """
+    Finds the jacobian of the input values with respect to the output values
+    :param y: The input values (1xn)
+    :param weights: The weights of this layer (m x n)
+    :return: Jacobian (n x m)
+    """
+
+    # The jacobian is literally just the weights matrix
+    return weights
+
+
+def first_layer_weights_gradient_wrt_entropy_loss(x, h, y, weights):
+    """
+    The gradients of the weight in the first network layer with respect to softmax output entropy
+    :param x: Inputs to the network (1 x n)
+    :param h: Hidden layer values (1 x q)
+    :param y: Softmax outputs of the network (1 x m)
+    :param weights: Second layer weights (m x q)
+    :return: gradients 1 x (qxn), but reshaped to the weights shape, (q x n)
+    """
+
+    q = len(h)
+    n = len(x)
+
+    entropy_jac = entropy_loss_jacobian(y)  # (1 x m)
+    softmax_jac = softmax_jacobian(y)
+    hidden_jac = previous_layer_jacobian(weights)
+    first_layer_weights_jac = weight_matrix_jacobian(x, (q, n))
+
+    return entropy_jac.dot(softmax_jac).dot(hidden_jac).dot(first_layer_weights_jac).reshape(q, n)
+
+
 def model_gradients(x, hidden, loss, weights):
     """
     :param x:
@@ -148,6 +212,22 @@ def model_gradients(x, hidden, loss, weights):
 
     # Last layer's gradient
     last_layer_grad = -softmax_layer_jacobian(hidden, loss)
+    gradients.append(last_layer_grad)
+
+    return gradients
+
+
+def model_gradients_wrt_entropy(x, hidden, y, weights):
+    gradients = []
+    # No negative signs here because entropy is subject to maximization
+
+    # First layer's gradient
+    # TODO: This is not effecient, it does the same calculations twice
+    first_layer_grad = first_layer_weights_gradient_wrt_entropy_loss(x, hidden, y, weights)
+    gradients.append(first_layer_grad)
+
+    # Last layer's gradient
+    last_layer_grad = weights_gradient_wrt_entropy_loss(hidden, y)
     gradients.append(last_layer_grad)
 
     return gradients
@@ -179,12 +259,6 @@ def test_gradient_with_stacked_inputs():
     print("stacked")
     print(gradients_stacked)
 
-    # [array([[-0.0458,  0.1248,  0.3731, -0.0955],
-    #           [ 0.1469, -0.4009, -1.1982,  0.3068],
-    #           [-0.0695,  0.1896,  0.5667, -0.1451]]),
-    #           array([[ 0.2439,  0.3273, -0.0592],
-    #                  [-0.2439, -0.3273,  0.0592]])]
-
 
 def test_jacobians():
     # Random seed
@@ -214,10 +288,7 @@ def test_jacobians():
     assert np.allclose(output_data_gradient, softmax_jac, 0.01)
 
 
-if __name__ == "__main__":
-    # Test backpropagation
-    test_gradient_with_stacked_inputs()
-
+def test_entropy_loss():
     # Random seed
     np.random.seed(0)
 
@@ -233,67 +304,137 @@ if __name__ == "__main__":
     input_data = np.random.normal(0, 1, layers[0])
     output_data, hidden_data = policy_feed_forward(model, input_data)
     softmax_data = softmax(output_data)
-    desired_label = np.array([0, 1])
-    error = desired_label - softmax_data
+    entropy = entropy_of_probabilities(softmax_data)
 
-    print("input data")
+    print("input_data")
     print(input_data)
-    print("hidden data")
+    print("hidden_data")
     print(hidden_data)
-    print("output data")
+    print("output_data")
     print(output_data)
-    print("softmax")
+    print("softmax_data")
     print(softmax_data)
-    print("desired label")
-    print(desired_label)
-    print("error")
-    print(error)
+    print("entropy")
+    print(entropy)
     print()
 
-    # TODO: These need to be all stacked
-    # TODO: subtract label and softmax before passing to function
-    output_data, hidden_data = policy_feed_forward(model, input_data)
-    softmax_data = softmax(output_data)
+    # Get gradients of first layer
+    entropy_grad = model_gradients_wrt_entropy(input_data, hidden_data, softmax_data, model[1])
 
-    simple_layer_jac = softmax_layer_jacobian(hidden_data, softmax_data, desired_label)
-    print(simple_layer_jac)
+    # dx = 0.001
+    # model[0][2, 1] += dx
+    # output_data, _ = policy_feed_forward(model, input_data)
+    # softmax_data = softmax(output_data)
+    # entropy_modified = entropy_of_probabilities(softmax_data)
+    # print("Test of gradient")
+    # print((entropy_modified - entropy) / dx)
 
-    jac_wrt_inputs = softmax_layer_jacobian_wrt_inputs(model[1], softmax_data, desired_label)
-    print("jac_wrt_inputs")
-    print(jac_wrt_inputs)
-    dx = 0.01
-    # hidden_data[0] += dx
-    # softmax_data_modified = softmax(model[1].dot(hidden_data))
-    prev_layer_grad = previous_layers_weights_jacobian(input_data, model[1], softmax_data, desired_label)
-    print("prev_layer_grad")
-    print(prev_layer_grad)
+    weights = []
+    learning_rate = 0.1
+    entropy_bonus = 0.3
+    desired_label = np.array([[1, 0]])
+    print("New softmaxes:")
+    for i in range(100):
+        weights.append(model[0].copy().ravel())
 
-    gradients = model_gradients(input_data, hidden_data, softmax_data, model[1], desired_label)
-    print("gradients")
-    print(gradients)
+        # entropy_grad = weights_gradient_wrt_entropy_loss(input_data, softmax_data)
+        entropy_grad = model_gradients_wrt_entropy(input_data, hidden_data, softmax_data, model[1])
 
-    model[0][1, 2] += dx
-    output_data, _ = policy_feed_forward(model, input_data)
-    softmax_modified = softmax(output_data)
-    print(softmax_modified)
-    print(softmax_data)
-    # print((softmax_modified - softmax_data) / dx)
+        # label_grad = model_gradients(input_data, hidden_data, desired_label - softmax_data, model[1])
 
-    # weights = []
-    # for i in range(30):
-    #     weights.append(model[0].copy().ravel())
+        for i in range(len(model)):
+            model[i] += (entropy_bonus * entropy_grad[i]) * learning_rate
+
+        output_data, hidden_data = policy_feed_forward(model, input_data)
+        softmax_data = softmax(output_data)
+
+        print(softmax_data)
+
+    import matplotlib.pyplot as plt
+    plt.plot(np.vstack(weights))
+    plt.show()
+
+
+if __name__ == "__main__":
+    # # Test backpropagation
+    # test_gradient_with_stacked_inputs()
+
+    # Test entropy bonus
+    test_entropy_loss()
+
+    # # Random seed
+    # np.random.seed(0)
     #
-    #     model = backpropagation(model, input_data, softmax_data, desired_label, learning_rate=1)
-    #     output_data_modified = policy_feed_forward(model, input_data)
-    #     softmax_data = softmax(output_data_modified)
-    #     print("new softmax")
-    #     print(softmax_data)
+    # # Print arrays nicer
+    # np.set_printoptions(precision=4, floatmode='fixed', linewidth=1000, suppress=True)
     #
-    # print(np.vstack(weights))
+    # layers = [4, 3, 2]
+    # model = create_model(layers)
     #
-    # import matplotlib.pyplot as plt
-    # plt.plot(np.vstack(weights))
-    # plt.show()
-
-
-
+    # print("model")
+    # print(model)
+    #
+    # input_data = np.random.normal(0, 1, layers[0])
+    # output_data, hidden_data = policy_feed_forward(model, input_data)
+    # softmax_data = softmax(output_data)
+    # desired_label = np.array([0, 1])
+    # error = desired_label - softmax_data
+    #
+    # print("input data")
+    # print(input_data)
+    # print("hidden data")
+    # print(hidden_data)
+    # print("output data")
+    # print(output_data)
+    # print("softmax")
+    # print(softmax_data)
+    # print("desired label")
+    # print(desired_label)
+    # print("error")
+    # print(error)
+    # print()
+    #
+    # # TODO: These need to be all stacked
+    # # TODO: subtract label and softmax before passing to function
+    # output_data, hidden_data = policy_feed_forward(model, input_data)
+    # softmax_data = softmax(output_data)
+    #
+    # simple_layer_jac = softmax_layer_jacobian(hidden_data, softmax_data, desired_label)
+    # print(simple_layer_jac)
+    #
+    # jac_wrt_inputs = softmax_layer_jacobian_wrt_inputs(model[1], softmax_data, desired_label)
+    # print("jac_wrt_inputs")
+    # print(jac_wrt_inputs)
+    # dx = 0.01
+    # # hidden_data[0] += dx
+    # # softmax_data_modified = softmax(model[1].dot(hidden_data))
+    # prev_layer_grad = previous_layers_weights_jacobian(input_data, model[1], softmax_data, desired_label)
+    # print("prev_layer_grad")
+    # print(prev_layer_grad)
+    #
+    # gradients = model_gradients(input_data, hidden_data, softmax_data, model[1], desired_label)
+    # print("gradients")
+    # print(gradients)
+    #
+    # model[0][1, 2] += dx
+    # output_data, _ = policy_feed_forward(model, input_data)
+    # softmax_modified = softmax(output_data)
+    # print(softmax_modified)
+    # print(softmax_data)
+    # # print((softmax_modified - softmax_data) / dx)
+    #
+    # # weights = []
+    # # for i in range(30):
+    # #     weights.append(model[0].copy().ravel())
+    # #
+    # #     model = backpropagation(model, input_data, softmax_data, desired_label, learning_rate=1)
+    # #     output_data_modified = policy_feed_forward(model, input_data)
+    # #     softmax_data = softmax(output_data_modified)
+    # #     print("new softmax")
+    # #     print(softmax_data)
+    # #
+    # # print(np.vstack(weights))
+    # #
+    # # import matplotlib.pyplot as plt
+    # # plt.plot(np.vstack(weights))
+    # # plt.show()
