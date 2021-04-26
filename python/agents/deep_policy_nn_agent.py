@@ -5,7 +5,7 @@ import json
 
 from agents import Agent
 from common.data_normalizer import DataNormalizer
-from common.backpropagation import policy_feed_forward, model_gradients
+from common.backpropagation import policy_feed_forward, model_gradients, model_gradients_wrt_entropy
 from common.adam_optimizer import AdamOptimizer
 
 EP_END = -100  # Number in rewards that indicates game end. Rewards in one game should not interact with others
@@ -22,7 +22,7 @@ class DeepPolicyNNAgent(Agent):
         self.mini_batch_size = 15  # After how many games to do a network update
         self.batch_size = 15  # After how many games to do a rmsprop param update
 
-        self.entropy_weight = 0.01  # Weight given to entropy of action probabilities bonus
+        self.entropy_bonus = 0.04  # Weight given to entropy of action probabilities bonus
 
         # Team spirit weight. Affects how rewards are shared across the team
         self.team_spirit = 0.0
@@ -213,11 +213,15 @@ class DeepPolicyNNAgent(Agent):
                 y_loss = nn_outputs - actions_taken
                 y_loss *= discounted_rewards
 
-                grad = model_gradients(nn_inputs, nn_hidden, y_loss, self.model[1])
+                # label_grad: encourages model to take actions again
+                # entropy_grad: encourages model to have random outputs
+                # Multiply entropy_grad by weight so it isn't overwhelming the other gradient
+                label_grad = model_gradients(nn_inputs, nn_hidden, y_loss, self.model[1])
+                entropy_grad = model_gradients_wrt_entropy(nn_inputs, nn_hidden, nn_outputs, self.model[1])
 
                 # Store grads in buffer for eventual update
                 for i in range(len(self.grad_buffer)):
-                    self.grad_buffer[i] += grad[i]
+                    self.grad_buffer[i] += label_grad[i] + self.entropy_bonus * entropy_grad[i]
 
             # Reset storage
             self.actions, self.rewards, self.nn_outputs = dict(), dict(), dict()
@@ -315,7 +319,7 @@ class DeepPolicyNNAgent(Agent):
         config["learning_rate"] = self.learning_rate_decay
         config["mini_batch_size"] = self.mini_batch_size
         config["batch_size"] = self.batch_size
-        config["entropy_weight"] = self.entropy_weight
+        config["entropy_bonus"] = self.entropy_bonus
         config["layers"] = self.layers
         config["team_spirit"] = self.team_spirit
 
@@ -345,7 +349,7 @@ class DeepPolicyNNAgent(Agent):
             self.learning_rate_decay = config["learning_rate"]
             self.mini_batch_size = config["mini_batch_size"]
             self.batch_size = config["batch_size"]
-            self.entropy_weight = config["entropy_weight"]
+            self.entropy_bonus = config["entropy_bonus"]
             self.layers = config["layers"]
             self.team_spirit = config["team_spirit"]
 

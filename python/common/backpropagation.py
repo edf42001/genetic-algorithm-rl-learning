@@ -145,21 +145,27 @@ def entropy_loss_jacobian(y):
 def weights_gradient_wrt_entropy_loss(x, y):
     """
     Finds the gradients of the weight in the layer with respect to softmax output entropy
-    :param x: Inputs to this layer (1 x n)
-    :param y: Softmax outputs of this layer (1 x m)
+    :param x: Stacked inputs to this layer (N x n)
+    :param y: Stacked softmax outputs of this layer (N x m)
     :return: gradients 1 x (mxn), but reshaped to the weights shape, (m x n)
     """
 
-    n = len(x)
-    m = len(y)
+    n = x.shape[1]
+    m = y.shape[1]
 
-    entropy_jac = entropy_loss_jacobian(y)
-    softmax_jac = softmax_jacobian(y)
-    weights_jac = weight_matrix_jacobian(x, weight_shape=(m, n))
-    entropy_softmax_jac = entropy_jac.dot(softmax_jac)
-    entropy_softmax_weights_jac = entropy_softmax_jac.dot(weights_jac)
+    grad = np.zeros((1, m*n))
 
-    return entropy_softmax_weights_jac.reshape((m, n))
+    # Just do this in a loop, I can't think of a more efficient vectorized way yet
+    for xi, yi in zip(x, y):
+        entropy_jac = entropy_loss_jacobian(yi)  # (1 x m)
+        softmax_jac = softmax_jacobian(yi)  # (m x m)
+        weights_jac = weight_matrix_jacobian(xi, weight_shape=(m, n))  # (m x (mxn))
+        entropy_softmax_jac = entropy_jac.dot(softmax_jac)  # (1 x m)
+        entropy_softmax_weights_jac = entropy_softmax_jac.dot(weights_jac)  # (1 x (mxn))
+
+        grad += entropy_softmax_weights_jac
+
+    return grad.reshape((m, n))
 
 
 def previous_layer_jacobian(weights):
@@ -184,15 +190,23 @@ def first_layer_weights_gradient_wrt_entropy_loss(x, h, y, weights):
     :return: gradients 1 x (qxn), but reshaped to the weights shape, (q x n)
     """
 
-    q = len(h)
-    n = len(x)
+    q = h.shape[1]
+    n = x.shape[1]
 
-    entropy_jac = entropy_loss_jacobian(y)  # (1 x m)
-    softmax_jac = softmax_jacobian(y)
-    hidden_jac = previous_layer_jacobian(weights)
-    first_layer_weights_jac = weight_matrix_jacobian(x, (q, n))
+    grad = np.zeros((1, q*n))
 
-    return entropy_jac.dot(softmax_jac).dot(hidden_jac).dot(first_layer_weights_jac).reshape(q, n)
+    # Just do this in a loop, I can't think of a more efficient vectorized way yet
+    for xi, yi in zip(x, y):
+        entropy_jac = entropy_loss_jacobian(yi)  # (1 x m)
+        softmax_jac = softmax_jacobian(yi)
+        hidden_jac = previous_layer_jacobian(weights)
+        first_layer_weights_jac = weight_matrix_jacobian(xi, (q, n))
+
+        jac = entropy_jac.dot(softmax_jac).dot(hidden_jac).dot(first_layer_weights_jac)
+
+        grad += jac
+
+    return grad.reshape((q, n))
 
 
 def model_gradients(x, hidden, loss, weights):
@@ -246,18 +260,29 @@ def test_gradient_with_stacked_inputs():
     softmax_data = softmax(output_data)
     desired_label = [0, 1]
 
-    # gradients_non_stacked = model_gradients(input_data, hidden_data, softmax_data - desired_label, model[1])
-    # print(gradients_non_stacked)
+    # non_stacked_grad = model_gradients_wrt_entropy(input_data, hidden_data, softmax_data, model[1])
+    # print("non_stacked_grad")
+    # print(non_stacked_grad)
 
     input_data_stacked = np.vstack((input_data, input_data, input_data, input_data))
     softmax_data_stacked = np.vstack((softmax_data, softmax_data, softmax_data, softmax_data))
     hidden_data_stacked = np.vstack((hidden_data, hidden_data, hidden_data, hidden_data))
     desired_label_stacked = np.vstack((desired_label, desired_label, desired_label, desired_label))
 
-    gradients_stacked = model_gradients(input_data_stacked, hidden_data_stacked,
-                                        softmax_data_stacked - desired_label_stacked, model[1])
+    # gradients_stacked = model_gradients(input_data_stacked, hidden_data_stacked,
+    #                                     softmax_data_stacked - desired_label_stacked, model[1])
+
+    # Desired result (multiply by 4 because there are four stacked)
+    # [array([[-0.0070,  0.0190,  0.0568, -0.0146],
+    #         [ 0.0224, -0.0611, -0.1825,  0.0467],
+    #         [-0.0106,  0.0289,  0.0863, -0.0221]]), array([[ 0.0372,  0.0499, -0.0090],
+    #                                                        [-0.0372, -0.0499,  0.0090]])]
+    entropy_grad_w_stack = model_gradients_wrt_entropy(input_data_stacked, hidden_data_stacked,
+                                                       softmax_data_stacked, model[1])
     print("stacked")
-    print(gradients_stacked)
+    print(entropy_grad_w_stack)
+
+    print()
 
 
 def test_jacobians():
@@ -356,11 +381,11 @@ def test_entropy_loss():
 
 
 if __name__ == "__main__":
-    # # Test backpropagation
-    # test_gradient_with_stacked_inputs()
+    # Test backpropagation
+    test_gradient_with_stacked_inputs()
 
     # Test entropy bonus
-    test_entropy_loss()
+    # test_entropy_loss()
 
     # # Random seed
     # np.random.seed(0)
