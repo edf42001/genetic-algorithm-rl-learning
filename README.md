@@ -172,14 +172,15 @@ thus learns the optimal weights of the network.
 #### Observation Space
 
 Because the CE agent uses a neural network architecture instead of a Q table, we can have many more observation variables.
-Each unit observes:
-* Its own health
 
-Then for every other unit:
-* x and y distance to that unit
-* total distance to that unit
-* unit's health
-* is the unit in attack range?
+| **Each unit observes** |
+| :--- |
+| Current health |
+| **For every other unit** |
+| x and y distance to unit |
+| total distance to unit |
+| unit's health |
+| Is unit in attack range? |
 
 Integers and floats are interpreted as is, boolean values are converted to 0 or 1. 
 
@@ -199,11 +200,13 @@ The rewards are not perfectly symmetric because it was believed this could cause
 of taking damage. If dealing damage is weighted more heavily than taking damage, an agent that attacks will on average
 gain a positive reward. The following table lists actions and their associated rewards.
 
-* Every step: -0.03
-* 1 / (distance to enemy): 0.009 
-* Deal damage: 0.05
-* Take damage: -0.03
-* Win: 1.0
+| Action | Reward |
+|   ---  |   ---  |
+| Every step | -0.03 |
+| 1 / (distance to enemy) | 0.009 |
+| Damage dealt | 0.05 |
+| Damage taken | -0.03 |
+| Win | 1.0 |
 
 #### Results and Future Work
 A CE agent with 1 hidden layer of size 8 was trained for around 900,000 iterations. It achieved a win rate of
