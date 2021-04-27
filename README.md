@@ -249,6 +249,117 @@ and by finding small code tweaks that improved their efficiency.
 For example, using the python module `random` to select a random value is more effecient than the initially used
 using `numpy.random`. After these changes were made, code efficiency increased 60% to ~1900 game steps / s
 
+## Deep Policy Learning Agent
+
+The Deep Policy agent marks the start of the RL algorithms that use a form of _policy gradient_ to learn. In essence,
+the agent will sample many actions during the game, and recieve a reward for each. The policy gradient then changes the
+weights of the policy so that actions with high rewards will tend to be chosen again when the agent encounters that state
+in the future. This agent is inspired by Andrej Karpathy's excellent blog post,
+[_Pong From Pixels_](http://karpathy.github.io/2016/05/31/rl/).
+
+#### Policy
+
+The policy network consists of a neural network of size 16x16x5. Each agent observes 16 input variables, has a hidden
+layer of size 16, and can choose between 5 output actions. The observation and action spaces are discussed in more
+detail below. Currently, because the backpropagation method was programmed by hand as an academic exercise, the network
+is limited to one hidden layer. Future work will likely switch to [keras](https://keras.io/), which can do backpropagation
+on networks of any size. This will allow for more complex policy networks, such as the use of more hidden layers or LSTM
+layers. 
+1730
+
+#### Observation Space
+
+A Deep Policy unit observes the following environment data:
+
+| **Each unit observes** |
+| :--- |
+| Current health |
+| **For every other unit** |
+| x and y distance to unit |
+| total distance to unit |
+| unit's health |
+| Is unit in attack range? |
+
+Integers and floats are interpreted as is, boolean values are converted to 0 or 1.
+
+The agent keeps a running total of the mean and standard deviation of every input variable, which it uses to normalize
+the input data. The input data is then clipped to +- 5 after normalization.
+
+Future work will expand upon this to give the agent more information about its and the enemies' behavior. This will
+include observations such as: "Is this enemy attacking me?", "The last action I took", and more.
+
+#### Action Space
+
+A unit can take five actions: moving in the 4 cardinal directions, or attacking the nearest enemy.
+The action to take is selected by a weighted probability of the softmax output of the network.
+
+#### Rewards
+
+Agents are given rewards for actions they perform. In order to solve the credit assignment problem, rewards are discounted
+over time with a discount factor. Thus, agents are much more likely to take an action that leads to an immediate reward,
+but still also likely to take actions that lead to future rewards. The closes the discount factor is towards 1, the farther
+into the future the agent looks for rewards. The goal of the agent is to win the game, which requires a certain level of
+lookahead. See Appendix A for a list of parameter values used during training of the Deep Policy Agent. 
+
+Rewards were chosen to encourage getting near and quickly killing the enemy.
+The rewards are not perfectly symmetric because it was believed this could cause agents to simply not attack, for fear
+of taking damage. If dealing damage is weighted more heavily than taking damage, an agent that attacks will on average
+gain a positive reward. The following table lists actions and their associated rewards.
+
+| Action | Reward |
+|   ---  |   ---  |
+| 1 / (distance to enemy) | 0.009 |
+| Damage dealt | 0.05 |
+| Damage taken | -0.03 |
+| Win | 1.0 |
+
+#### Results and Future Work
+
+The Deep Policy agent was able to achieve a 95% win rate, in only 300,000 iterations. This is approximately 3x faster
+than the CE agent, and it looses half as often. This speed increase is likely due to the CE agent needing to run
+100 trials before doing a parameter update. The following graph shows the results of 5 training runs. Some runs do not
+get as good as a start as others, however all tend to end up at the same win rate. Some runs are lucky and encounter
+enemies right away and learn that attacking them is good. Others take longer to do so. Possible solutions to this
+conundrum are discussed in Appendix B. 
+
+![Deep Policy Win Rate](readme_images/deep_policy_agent_win_rate.png "Deep Policy Win Rate")
+
+#### Appendix A: Parameter Values
+
+These are the parameters that gave the best results (~95% win rate) of the Deep Policy agent
+
+| Parameter | Value |
+| --- | --- |
+| Discount rate | 0.95 |
+| Team spirit | 0.00 |
+| Entropy bonus | 0.04 |
+| Network size | 16x16x5 |
+| Learning rate | 0.01 |
+| Batch size | 16 |
+| Adam optimizer beta1 | 0.99 |
+| Adam optimizer beta2 | 0.999 |
+
+#### Appendix B: Entropy Bonus & Randomization
+
+A common issue with any neural network based learning algorithm is to get stuck in a local minimum. This is solved in
+two ways. The first is by always randomizing the initial state of the game, so that agents can learn a robust policy.
+Currently, this consists of randomizing unit's starting locations on their left and right sides of the field, but future
+work may also add health randomization and more. If an event takes a long, specific sequence of actions to achieve, such
+as killing an enemy agent, it is unlikely to occur, and the agent will never learn that that event gives a large reward.
+By randomizing agent's starting health, this event is more easily happened upon, and the agent will learn to attack. 
+
+The second way to encourage exploration is with an entropy bonus. The entropy of the policy is the amount of randomness
+in the softmax outputs of the network. Without the entropy bonus, the advantage backpropagation will tend to push one of the action outputs
+towards 1 and the rest towards 0, which as a low entropy. The entropy bonus gradient is added to the advantage gradient.
+This makes the agent take slightly more random actions. The results of this are shown below. For each
+entropy bonus value, 3 training runs were done and the results are averaged together. It can be seen that high entropy
+bonuses do not do well, because the actions the agents take are too random. The sample size of 3 is somewhat small,
+as there is often large variability in training speeds, but it can be generally seen that an entropy bonus of 0.04 learns
+the fastest and achieved the best results. The effect of this may become more prononced as the observation and action
+spaces are increased in complexity. 
+
+![Deep Policy Entropy Bonus](readme_images/deep_policy_entropy_bonus_win_rate.png "Deep Policy Entropy Bonus")
+
 
 ## gRPC Implementation
 
