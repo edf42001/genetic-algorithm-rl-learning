@@ -34,7 +34,17 @@ a reinforcement learning algorithm that learns to play the video game DOTA 2.
       * [Rewards](#rewards)
       * [Results and Future Work](#results-and-future-work)
       * [Code Efficiency Analysis](#code-efficiency-analysis)
+    * [Deep Policy Learning Agent](#deep-policy-learning-agent)
+      * [Policy](#policy-1)
+      * [Observation Space](#observation-space-3)
+      * [Action Space](#action-space-3)
+      * [Rewards](#rewards-1)
+      * [Results and Future Work](#results-and-future-work-1)
+      * [Appendix A: Parameter Values](#appendix-a-parameter-values)
+      * [Appendix B: Entropy Bonus &amp; Randomization](#appendix-b-entropy-bonus--randomization)
+      * [Appendix C: Code Efficiency Analysis](#appendix-c-code-efficiency-analysis)
     * [gRPC Implementation](#grpc-implementation)
+
 
 
 ## SEPIA
@@ -257,6 +267,7 @@ weights of the policy so that actions with high rewards will tend to be chosen a
 in the future. This agent is inspired by Andrej Karpathy's excellent blog post,
 [_Pong From Pixels_](http://karpathy.github.io/2016/05/31/rl/).
 
+
 #### Policy
 
 The policy network consists of a neural network of size 16x16x5. Each agent observes 16 input variables, has a hidden
@@ -265,7 +276,6 @@ detail below. Currently, because the backpropagation method was programmed by ha
 is limited to one hidden layer. Future work will likely switch to [keras](https://keras.io/), which can do backpropagation
 on networks of any size. This will allow for more complex policy networks, such as the use of more hidden layers or LSTM
 layers. 
-1730
 
 #### Observation Space
 
@@ -341,24 +351,33 @@ These are the parameters that gave the best results (~95% win rate) of the Deep 
 
 #### Appendix B: Entropy Bonus & Randomization
 
-A common issue with any neural network based learning algorithm is to get stuck in a local minimum. This is solved in
-two ways. The first is by always randomizing the initial state of the game, so that agents can learn a robust policy.
-Currently, this consists of randomizing unit's starting locations on their left and right sides of the field, but future
-work may also add health randomization and more. If an event takes a long, specific sequence of actions to achieve, such
-as killing an enemy agent, it is unlikely to occur, and the agent will never learn that that event gives a large reward.
-By randomizing agent's starting health, this event is more easily happened upon, and the agent will learn to attack. 
+A common issue with any neural network based learning algorithm is to get stuck in a local minimum.The first solution to
+this  is to randomize the initial state of the game. Currently, this consists of randomizing unit's starting locations,
+but future work may also add health randomization and more. If an event such as killing an enemy agent takes a long,
+specific sequence of actions to achieve, it is unlikely to occur, and the agent will never learn that that event gives
+a large reward. By randomizing agent's starting health, this event is more easily happened upon,
+and the agent will learn to attack. 
 
 The second way to encourage exploration is with an entropy bonus. The entropy of the policy is the amount of randomness
-in the softmax outputs of the network. Without the entropy bonus, the advantage backpropagation will tend to push one of the action outputs
-towards 1 and the rest towards 0, which as a low entropy. The entropy bonus gradient is added to the advantage gradient.
-This makes the agent take slightly more random actions. The results of this are shown below. For each
+in the softmax outputs of the network. Without the entropy bonus, the advantage backpropagation will tend to push one
+of the action outputs towards 1 and the rest towards 0, which as a low entropy, and the agent will not explore other
+actions that may lead to higher rewards. To solve this we add the entropy bonus loss gradient to the advantage gradient.
+This makes the agent take slightly more random actions.
+
+The results of this are shown below. For each
 entropy bonus value, 3 training runs were done and the results are averaged together. It can be seen that high entropy
 bonuses do not do well, because the actions the agents take are too random. The sample size of 3 is somewhat small,
 as there is often large variability in training speeds, but it can be generally seen that an entropy bonus of 0.04 learns
-the fastest and achieved the best results. The effect of this may become more prononced as the observation and action
-spaces are increased in complexity. 
+the fastest and achieved the best results. The effect of this may become more pronounced as the observation and action
+spaces are increased in complexity.
 
 ![Deep Policy Entropy Bonus](readme_images/deep_policy_entropy_bonus_win_rate.png "Deep Policy Entropy Bonus")
+
+#### Appendix C: Code Efficiency Analysis
+Due to the forward and backward pass operations, code efficiency slowed to 1750 iterations / s. The entropy bonus
+backpropigation is especially inefficient, as it uses direct Jacobian matrix multiplication to find the gradient.
+Unlike for the regular cross-entropy loss gradient, I am currently unaware of any tricks to simplify the calculations.
+This speed is still acceptable.
 
 
 ## gRPC Implementation
@@ -372,5 +391,4 @@ with synchronizing, as SEPIA runs on a separate timer and did not wait for the P
 The gRPC service is very simple. A message is sent to the control code containing the current state of
 the SEPIA environment, and the response contains the actions each unit should perform.
 During self play, both agents in the environment interact with the same Python server. The Python code
-differentiates between requests using the player_id field. 
-
+differentiates between requests using the player_id field.
