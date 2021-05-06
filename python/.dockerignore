@@ -1,0 +1,5 @@
+# Don't copy the locally saved runs from python
+saved_runs
+
+# Don't need this IntelliJ file
+python.iml

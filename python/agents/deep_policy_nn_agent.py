@@ -62,7 +62,7 @@ class DeepPolicyNNAgent(Agent):
 
         # How often to save, in epochs. Because winner callback is called multiple times per epoch, need to check if
         # we saved that epoch already
-        self.save_freq = 1500
+        self.save_freq = 2500
         self.should_save = False
 
         self.ep_start = True  # True if this turn is the start of the episode

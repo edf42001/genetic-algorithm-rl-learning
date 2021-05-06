@@ -54,11 +54,19 @@ public class ReinforcementLearningAgent extends Agent {
             this.enemyPlayerNum = new Integer(args[0]);
         }
 
-        System.out.println("In constructor of ReinforcementLearningAgent");
+        // I would like to switch between using hostname vs local host with an env variable
+        String pythonContainerHostname = System.getenv("PYTHON_CONTAINER_HOSTNAME");
+        String port = "50051";
+        if (pythonContainerHostname == null)
+        {
+            pythonContainerHostname = "localhost";
+        }
 
+        System.out.println("In constructor of ReinforcementLearningAgent");
         // Set up grpc client
         // Access a service running on the local machine on port 50051
-        String target = "localhost:50051";
+        String target = pythonContainerHostname + ":" + port;
+        System.out.println("Attempting to connect to " + target);
 
         // Create a communication channel to the server, known as a Channel. Channels are thread-safe
         // and reusable. It is common to create channels at the beginning of your application and reuse
