@@ -35,7 +35,7 @@ public class EnvironmentServiceClient {
         // shut it down.
 
         // Passing Channels to code makes code easier to test and makes it easier to reuse Channels.
-        blockingStub = EnvironmentServiceGrpc.newBlockingStub(channel).withWaitForReady();
+        blockingStub = EnvironmentServiceGrpc.newBlockingStub(channel);
 
         // Create empty builder for data to be added to and sent
         messageBuilder = EnvironmentRequest.newBuilder();
@@ -60,21 +60,26 @@ public class EnvironmentServiceClient {
         EnvironmentRequest request = messageBuilder.setPlayerId(playerID).build();
         messageBuilder = EnvironmentRequest.newBuilder();
 
-        for (Environment e : request.getAgentDataList())
-        {
-//            logger.info("Will try to send reward of " + e.getLastActionReward() +
-//                    ", state " + e.getStateList() + ", unitID " + e.getUnitId());
-        }
-
         ActionResponse response;
         try {
             response = blockingStub.sendEnvironment(request);
         } catch (StatusRuntimeException e) {
             logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus());
+
+            // If the server shuts down we are likely done training and should stop too
+            boolean serverShutdown = e.toString().contains("Server shutdown");
+            if(serverShutdown) {
+                System.out.println("Server shut down, exiting");
+                System.exit(0);
+            }
+            // Otherwise, this is an unexpected error so shut down
+            else {
+                System.exit(1);
+            }
+
             return null;
         }
 
-//        logger.info("Returned actions: " + response.getActionList());
         return response.getActionList();
     }
 
@@ -82,13 +87,13 @@ public class EnvironmentServiceClient {
         // Get request and reset builder
         WinnerRequest request = WinnerRequest.newBuilder().setWinner(winner).setPlayerId(playerID).build();
 
-//        logger.info("Will try to send winner " + request.getWinner());
-
         try {
             blockingStub.sendWinner(request);
             return true;
         } catch (StatusRuntimeException e) {
+            // We should not have received an error here, so if we do, shut down
             logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus());
+            System.exit(1);
             return false;
         }
     }

@@ -8,6 +8,7 @@ import edu.cwru.sepia.agent.Agent;
 import edu.cwru.sepia.environment.model.history.DamageLog;
 import edu.cwru.sepia.environment.model.history.History;
 import edu.cwru.sepia.environment.model.state.State;
+import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import network.math.MyRand;
@@ -78,6 +79,26 @@ public class ReinforcementLearningAgent extends Agent {
                 .build();
 
         client = new EnvironmentServiceClient(channel);
+
+        // Loop until channel connects
+        System.out.println("Attempting channel connection to server...");
+        ConnectivityState channelState = null;
+        while (!ConnectivityState.READY.equals(channelState))
+        {
+            channelState = channel.getState(true);
+
+            // If not ready
+            if (!ConnectivityState.READY.equals(channelState)) {
+                // Wait for 2s, then try again
+                try {
+                    // TODO: use callback?
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        System.out.println("Channel successfully connected");
 
 
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
